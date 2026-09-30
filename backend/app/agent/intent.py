@@ -182,10 +182,10 @@ class IntentMandate(BaseModel):
         self.attributes["size"] = str(val) if val is not None else None
 
     @property
-    def delivery_deadline(self) -> str:
+    def delivery_deadline(self) -> Optional[str]:
         if self.delivery_by is not None:
             return str(self.delivery_by)
-        return "Standard Delivery"
+        return None
 
     @property
     def categoryLabel(self) -> str:

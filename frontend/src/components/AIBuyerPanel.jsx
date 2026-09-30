@@ -459,7 +459,8 @@ export default function AIBuyerPanel({
     if (selectedStorefrontProduct) {
       const category = selectedStorefrontProduct.category || 'Running';
       const budgetCeiling = Math.ceil(selectedStorefrontProduct.price + 200);
-      const promptQuery = `Buy me ${selectedStorefrontProduct.title} (${category}) under ₹${budgetCeiling}, size 9, arrive by Friday`;
+      const sizeSpec = selectedStorefrontProduct.sizes && selectedStorefrontProduct.sizes.length > 0 ? `, size ${selectedStorefrontProduct.sizes[0]}` : '';
+      const promptQuery = `Buy me ${selectedStorefrontProduct.title} (${category}) under ₹${budgetCeiling}${sizeSpec}`;
       setInputValue(promptQuery);
       handleSendQuery(promptQuery, 'none', selectedStorefrontProduct);
       onClearSelectedProduct();
@@ -763,13 +764,15 @@ export default function AIBuyerPanel({
       needsClarification = false;
     }
 
-    let deliveryEta = "Friday (2026-08-29)";
+    let deliveryEta = null;
     if (text.includes("tomo") || text.includes("tomorrow") || text.includes("1 day") || text.includes("urgent")) {
       deliveryEta = "Tomorrow";
     } else if (text.includes("friday") || text.includes("fri")) {
-      deliveryEta = "Friday (2026-08-29)";
+      deliveryEta = "Friday";
     } else if (text.includes("saturday") || text.includes("sat")) {
-      deliveryEta = "Saturday (2026-08-30)";
+      deliveryEta = "Saturday";
+    } else if (text.includes("sunday") || text.includes("sun")) {
+      deliveryEta = "Sunday";
     } else if (text.includes("2 day") || text.includes("weekend")) {
       deliveryEta = "in 2 days";
     }
@@ -778,8 +781,6 @@ export default function AIBuyerPanel({
     const sizeMatch = text.match(/(?:size|sz|uk|us)\s*[:=]?\s*(\d+(?:\.\d+)?)/i);
     if (sizeMatch) {
       size = sizeMatch[1];
-    } else if (category === "Running" || category === "Sneakers") {
-      size = 9;
     }
 
     return {
@@ -874,11 +875,18 @@ export default function AIBuyerPanel({
         else if (catLower.includes("bag") || catLower.includes("pack")) mappedCategory = "Bags";
         else if (catLower.includes("run") || catLower.includes("shoe")) mappedCategory = "Running";
 
+        let parsedDelivery = null;
+        if (data.delivery_deadline && !data.delivery_deadline.includes("Standard") && !data.delivery_deadline.includes("Not specified")) {
+          parsedDelivery = data.delivery_deadline;
+        } else if (data.delivery_by) {
+          parsedDelivery = data.delivery_by;
+        }
+
         constraints = {
           category: mappedCategory,
           categoryLabel: data.categoryLabel || (data.category ? data.category.toLowerCase() : "running shoes"),
           budget_max: (data.budget_max !== undefined && data.budget_max !== null) ? data.budget_max : (data.budget_ceiling !== undefined ? data.budget_ceiling : null),
-          delivery_deadline: data.delivery_deadline || data.delivery_by || "Friday (2026-08-29)",
+          delivery_deadline: parsedDelivery,
           size: data.size || (targetProduct ? targetProduct.sizes?.[0] : null),
           max_retries: data.max_retries || 2,
           rawQuery: queryText
@@ -920,7 +928,7 @@ export default function AIBuyerPanel({
     const budgetStr = constraints.budget_max 
       ? ` under **₹${constraints.budget_max.toLocaleString('en-IN')}**` 
       : '';
-    const sizeStr = constraints.size ? `, size ${constraints.size}` : '';
+    const sizeStr = constraints.size ? `, size **${constraints.size}**` : '';
     const etaStr = constraints.delivery_deadline && !constraints.delivery_deadline.includes("Standard") && !constraints.delivery_deadline.includes("Not specified")
       ? `, arriving **${constraints.delivery_deadline}**`
       : '';
@@ -1084,20 +1092,22 @@ export default function AIBuyerPanel({
     const budgetCeiling = mandateConstraints?.budget_max || chosen.price;
     const actualPrice = isBreach && hasZeroMatch ? chosen.price : isBreach ? budgetCeiling + 499 : chosen.price;
     const ceilingDisplayStr = mandateConstraints?.budget_max ? `₹${mandateConstraints.budget_max.toLocaleString('en-IN')}` : `₹${chosen.price.toLocaleString('en-IN')} (Exact)`;
+    const etaDisplayStr = mandateConstraints?.delivery_deadline ? `, ETA (${mandateConstraints.delivery_deadline})` : '';
+    const sizeDisplayStr = mandateConstraints?.size ? `, Size (${mandateConstraints.size})` : '';
 
     const initialSteps = [
       {
         id: 'INTENT_PARSED',
         title: '1. Intent Parsed',
-        description: `Structured constraints: Category (${mandateConstraints?.category || 'General'}), Budget Ceiling (${ceilingDisplayStr}), ETA (${mandateConstraints?.delivery_deadline || 'Friday'})`,
+        description: `Structured constraints: Category (${mandateConstraints?.category || 'General'}), Budget Ceiling (${ceilingDisplayStr})${sizeDisplayStr}${etaDisplayStr}`,
         status: 'running',
         timestamp: '+0.00s',
         rawPayload: {
           intent: "bounded_agent_purchase",
           category: mandateConstraints?.category || "Running",
           budget_max_inr: mandateConstraints?.budget_max || chosen.price,
-          size_spec: mandateConstraints?.size || "Universal",
-          delivery_deadline: mandateConstraints?.delivery_deadline || "Friday",
+          size_spec: mandateConstraints?.size || null,
+          delivery_deadline: mandateConstraints?.delivery_deadline || null,
           items_count: checkoutItems.length > 0 ? checkoutItems.length : 1,
           max_retries: 2,
           auth_context: "pre_approved_mandate_bound"
@@ -1297,7 +1307,9 @@ export default function AIBuyerPanel({
   };
 
   const handleAdjustBudgetAndRerun = (newBudget) => {
-    const query = `Buy me ${mandateConstraints?.categoryLabel || 'product'} under ₹${newBudget}, arrive ${mandateConstraints?.delivery_deadline || 'by Friday'}`;
+    const etaPart = mandateConstraints?.delivery_deadline ? `, arrive ${mandateConstraints.delivery_deadline}` : '';
+    const sizePart = mandateConstraints?.size ? `, size ${mandateConstraints.size}` : '';
+    const query = `Buy me ${mandateConstraints?.categoryLabel || 'product'} under ₹${newBudget}${sizePart}${etaPart}`;
     handleSendQuery(query, 'none');
   };
 
