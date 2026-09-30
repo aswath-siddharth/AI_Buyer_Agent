@@ -484,7 +484,7 @@ export default function ProductStorefront({
     <div className="storefront-layout">
       
       {/* Left Sidebar: Categories & Price Filters */}
-      <aside>
+      <aside className="storefront-sidebar">
         
         {/* Categories Section */}
         <div className="sidebar-section">
