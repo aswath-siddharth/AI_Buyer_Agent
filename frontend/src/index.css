@@ -82,7 +82,7 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* Custom Scrollbars */
@@ -134,7 +134,7 @@ h1, h2, h3, h4, h5, h6 {
   flex: 1;
   min-width: 0;
   padding: 24px 32px 64px 32px;
-  overflow-y: auto;
+  overflow: visible;
 }
 
 /* Right Pane: Persistent AI Buyer Panel (~35%) */
@@ -342,13 +342,15 @@ h1, h2, h3, h4, h5, h6 {
 
 .storefront-sidebar,
 .storefront-layout aside {
+  position: -webkit-sticky;
   position: sticky;
-  top: 0;
-  align-self: start;
-  max-height: calc(100vh - 110px);
+  top: 80px;
+  align-self: flex-start;
+  max-height: calc(100vh - 96px);
   overflow-y: auto;
   padding-right: 6px;
   scrollbar-width: thin;
+  z-index: 10;
 }
 
 @media (max-width: 900px) {
