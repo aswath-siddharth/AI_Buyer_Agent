@@ -479,6 +479,120 @@ def seed_database(force_reseed=False):
                 },
                 delivery_eta="2026-08-29"
             ),
+
+            # -------------------------------------------------------------
+            # SNEAKERS & CASUAL FOOTWEAR
+            # -------------------------------------------------------------
+            Product(
+                merchant_id=m_shop.id,
+                title="Puma Smash v2 Leather Sneakers",
+                price=2399,
+                stock=14,
+                image_url="https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=700&q=80",
+                attributes={
+                    "category": "sneakers",
+                    "brand": "Puma",
+                    "size": [8, 9, 10],
+                    "color": ["White/Navy", "Triple Black"],
+                    "rating": 4.6,
+                    "review_count": 890,
+                    "image_url": "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=700&q=80"
+                },
+                delivery_eta="2026-08-28"
+            ),
+
+            Product(
+                merchant_id=m_shop.id,
+                title="Converse Chuck Taylor All Star Street",
+                price=2899,
+                stock=9,
+                image_url="https://images.unsplash.com/photo-1607522370275-f14206abe5d3?auto=format&fit=crop&w=700&q=80",
+                attributes={
+                    "category": "sneakers",
+                    "brand": "Converse",
+                    "size": [7, 8, 9, 10],
+                    "color": ["Classic Black", "Optical White"],
+                    "rating": 4.8,
+                    "review_count": 1420,
+                    "image_url": "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?auto=format&fit=crop&w=700&q=80"
+                },
+                delivery_eta="2026-08-27"
+            ),
+
+            Product(
+                merchant_id=m_volt.id,
+                title="Adidas Grand Court Baseline Sneakers",
+                price=2799,
+                stock=11,
+                image_url="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=700&q=80",
+                attributes={
+                    "category": "sneakers",
+                    "brand": "Adidas",
+                    "size": [8, 9, 10, 11],
+                    "color": ["Core Black", "Cloud White"],
+                    "rating": 4.7,
+                    "review_count": 1130,
+                    "image_url": "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=700&q=80"
+                },
+                delivery_eta="2026-08-29"
+            ),
+
+            # -------------------------------------------------------------
+            # ATHLETIC & COMMUTER BAGS
+            # -------------------------------------------------------------
+            Product(
+                merchant_id=m_quick.id,
+                title="Arctic Fox Slope 30L Tech Backpack",
+                price=1899,
+                stock=20,
+                image_url="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=700&q=80",
+                attributes={
+                    "category": "bags",
+                    "brand": "Arctic Fox",
+                    "size": ["30L"],
+                    "color": ["Charcoal Black", "Navy Blue"],
+                    "rating": 4.7,
+                    "review_count": 650,
+                    "image_url": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=700&q=80"
+                },
+                delivery_eta="2026-08-27"
+            ),
+
+            Product(
+                merchant_id=m_volt.id,
+                title="Wildcraft Athleisure Gym & Duffle Bag",
+                price=1499,
+                stock=16,
+                image_url="https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&w=700&q=80",
+                attributes={
+                    "category": "bags",
+                    "brand": "Wildcraft",
+                    "size": ["35L"],
+                    "color": ["Matte Grey", "Volt Lime"],
+                    "rating": 4.6,
+                    "review_count": 480,
+                    "image_url": "https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&w=700&q=80"
+                },
+                delivery_eta="2026-08-28"
+            ),
+
+            Product(
+                merchant_id=m_shop.id,
+                title="Skybags Tech Commuter Laptop Backpack",
+                price=2299,
+                stock=15,
+                image_url="https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?auto=format&fit=crop&w=700&q=80",
+                attributes={
+                    "category": "bags",
+                    "brand": "Skybags",
+                    "size": ["28L"],
+                    "color": ["Obsidian Black", "Olive Green"],
+                    "rating": 4.8,
+                    "review_count": 910,
+                    "image_url": "https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?auto=format&fit=crop&w=700&q=80"
+                },
+                delivery_eta="2026-08-27"
+            ),
         ]
 
         db.add_all(products)

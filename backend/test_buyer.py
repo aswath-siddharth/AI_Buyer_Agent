@@ -1,4 +1,13 @@
+import os
+import sys
 from datetime import date
+
+os.environ["PYTHONIOENCODING"] = "utf-8"
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 from app.database import SessionLocal
 from app.agent.intent import IntentMandate

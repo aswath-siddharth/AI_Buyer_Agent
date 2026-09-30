@@ -791,18 +791,43 @@ export default function AIBuyerPanel({
           const greetingMsg = {
             id: `agent-greeting-${Date.now()}`,
             sender: 'agent',
-            text: data.conversational_reply || "👋 Hello! I am your Autonomous AI Buyer Agent on Meridian.\n\nTell me what you'd like to buy (e.g. 'smartwatch under ₹3000 by tomorrow' or 'running shoes under ₹3000, size 9').",
+            text: data.conversational_reply || "👋 Hello! I am Meridian, your Autonomous AI Shopping Agent.\n\nTell me what you'd like to buy (e.g. 'smartwatch under ₹3000 by tomorrow' or 'running shoes under ₹3000, size 9').",
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           };
           setMessages(prev => [...prev, greetingMsg]);
           setIsProcessing(false);
           return;
         }
+
+        if (data.needs_clarification && !targetProduct) {
+          const clarifyMsg = {
+            id: `agent-clarify-${Date.now()}`,
+            sender: 'agent',
+            text: "I'd love to help you find that! Could you specify which product category you're looking for?\n\n• **Running Shoes** or **Sneakers**\n• **Smartwatches**\n• **Audio** *(Headphones / Earbuds)*\n• **Bags** *(Tech Backpacks / Gym Duffles)*",
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          };
+          setMessages(prev => [...prev, clarifyMsg]);
+          setIsProcessing(false);
+          return;
+        }
+
+        if (data.category === null && !data.needs_clarification && !data.is_greeting && !targetProduct) {
+          const nonPurchasableMsg = {
+            id: `agent-info-${Date.now()}`,
+            sender: 'agent',
+            text: "I am Meridian, specialized in autonomous commerce across verified merchant catalogs (running shoes, sneakers, smartwatches, audio, bags). Ask me to find or purchase items for you!",
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          };
+          setMessages(prev => [...prev, nonPurchasableMsg]);
+          setIsProcessing(false);
+          return;
+        }
+
         constraints = {
           category: data.category || "Running",
-          categoryLabel: data.categoryLabel || "running shoes",
-          budget_max: (data.budget_max !== undefined && data.budget_max !== null) ? data.budget_max : null,
-          delivery_deadline: data.delivery_deadline || "Friday (2026-08-29)",
+          categoryLabel: data.categoryLabel || (data.category ? data.category.toLowerCase() : "running shoes"),
+          budget_max: (data.budget_max !== undefined && data.budget_max !== null) ? data.budget_max : (data.budget_ceiling !== undefined ? data.budget_ceiling : null),
+          delivery_deadline: data.delivery_deadline || data.delivery_by || "Friday (2026-08-29)",
           size: data.size || (targetProduct ? targetProduct.sizes?.[0] : null),
           max_retries: data.max_retries || 2,
           rawQuery: queryText
