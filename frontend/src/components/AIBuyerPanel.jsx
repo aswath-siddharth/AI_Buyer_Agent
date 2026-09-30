@@ -684,16 +684,43 @@ export default function AIBuyerPanel({
     }
   };
 
-  // Natural Language Parser
+  // Natural Language Parser (Aligned with Meridian Intent Mandate Specification)
   const parseNaturalLanguageIntent = (queryText, targetProduct = null) => {
-    const text = queryText.toLowerCase();
+    const text = queryText.toLowerCase().trim();
 
+    // 1. Non-purchasable check (Rule 7)
+    const nonPurchasableTriggers = ["what's the weather", "what is the weather", "weather today", "tell me a joke", "who is the prime minister", "how are you"];
+    if (nonPurchasableTriggers.some(t => text.includes(t))) {
+      return {
+        category: null,
+        categoryLabel: null,
+        budget_max: null,
+        delivery_deadline: null,
+        size: null,
+        max_retries: 2,
+        rawQuery: queryText,
+        isNonPurchasable: true,
+        needsClarification: false
+      };
+    }
+
+    // 2. Budget extraction (Rules 2 & 3: Shorthand, Ranges, Ceilings)
     let budgetMax = null;
+    const rangeMatch = text.match(/(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?k?)\s*(?:-|to)\s*(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?k?)/i);
     const kMatch = text.match(/(\d+(?:\.\d+)?)\s*k\b/i);
-    if (kMatch) {
+
+    if (rangeMatch) {
+      // Range: X-Y -> Y
+      const upperStr = rangeMatch[2].toLowerCase();
+      if (upperStr.includes('k')) {
+        budgetMax = Math.round(parseFloat(upperStr.replace('k', '')) * 1000);
+      } else {
+        budgetMax = parseInt(upperStr.replace(/,/g, ''), 10);
+      }
+    } else if (kMatch) {
       budgetMax = Math.round(parseFloat(kMatch[1]) * 1000);
     } else {
-      const numMatches = text.match(/(?:under|below|max|budget|limit|rs\.?|₹|\bless\s+than\b)\s*(\d+[\d,]*)/i);
+      const numMatches = text.match(/(?:under|below|less than|max|budget|limit|rs\.?|₹|inr)\s*(\d+[\d,]*)/i);
       if (numMatches) {
         const parsed = parseInt(numMatches[1].replace(/,/g, ''), 10);
         if (parsed > 50) {
@@ -702,28 +729,38 @@ export default function AIBuyerPanel({
       }
     }
 
-    let category = "Running";
-    let categoryLabel = "running shoes";
-    if (text.includes("smartwatch") || text.includes("smart watch") || text.includes("watch") || text.includes("watches")) {
-      category = "Watches";
-      categoryLabel = "smartwatches";
-    } else if (text.includes("audio") || text.includes("headphone") || text.includes("earbuds") || text.includes("earphone") || text.includes("tws") || text.includes("speaker") || text.includes("boat") || text.includes("sony") || text.includes("jbl")) {
-      category = "Audio";
-      categoryLabel = "wireless audio";
-    } else if (text.includes("bag") || text.includes("backpack") || text.includes("pack")) {
-      category = "Bags";
-      categoryLabel = "travel & athletic bags";
-    } else if (text.includes("sneaker") || text.includes("sneakers") || text.includes("streetwear")) {
-      category = "Sneakers";
-      categoryLabel = "sneakers";
-    } else {
+    // 3. Category matching (Knowledge Base: Running, Sneakers, Watches, Audio, Bags)
+    let category = null;
+    let categoryLabel = null;
+    let needsClarification = false;
+
+    if (text.includes("running shoe") || text.includes("running shoes") || text.includes("runners") || text.includes("run shoes")) {
       category = "Running";
       categoryLabel = "running shoes";
+    } else if (text.includes("sneaker") || text.includes("sneakers") || text.includes("streetwear") || text.includes("casual shoe") || text.includes("kicks")) {
+      category = "Sneakers";
+      categoryLabel = "sneakers";
+    } else if (text.includes("smartwatch") || text.includes("smart watch") || text.includes("fitness tracker") || text.includes("watch") || text.includes("watches")) {
+      category = "Watches";
+      categoryLabel = "smartwatches";
+    } else if (text.includes("audio") || text.includes("headphone") || text.includes("headphones") || text.includes("earbuds") || text.includes("earbud") || text.includes("earphone") || text.includes("tws") || text.includes("speaker") || text.includes("boat") || text.includes("sony") || text.includes("jbl")) {
+      category = "Audio";
+      categoryLabel = "audio (headphones/earbuds)";
+    } else if (text.includes("bag") || text.includes("bags") || text.includes("backpack") || text.includes("backpacks") || text.includes("duffel") || text.includes("pack")) {
+      category = "Bags";
+      categoryLabel = "bags & backpacks";
+    } else if (text.includes("shoes") || text.includes("shoe") || text.includes("footwear")) {
+      category = "Running";
+      categoryLabel = "shoes";
+    } else {
+      // Ambiguous query -> Rule 6: needs_clarification = true
+      needsClarification = true;
     }
 
     if (targetProduct) {
       category = targetProduct.category;
       categoryLabel = targetProduct.category.toLowerCase();
+      needsClarification = false;
     }
 
     let deliveryEta = "Friday (2026-08-29)";
@@ -731,14 +768,16 @@ export default function AIBuyerPanel({
       deliveryEta = "Tomorrow";
     } else if (text.includes("friday") || text.includes("fri")) {
       deliveryEta = "Friday (2026-08-29)";
+    } else if (text.includes("saturday") || text.includes("sat")) {
+      deliveryEta = "Saturday (2026-08-30)";
     } else if (text.includes("2 day") || text.includes("weekend")) {
       deliveryEta = "in 2 days";
     }
 
     let size = null;
-    const sizeMatch = text.match(/(?:size|sz|uk)\s*(\d+)/i);
+    const sizeMatch = text.match(/(?:size|sz|uk|us)\s*[:=]?\s*(\d+(?:\.\d+)?)/i);
     if (sizeMatch) {
-      size = parseInt(sizeMatch[1], 10);
+      size = sizeMatch[1];
     } else if (category === "Running" || category === "Sneakers") {
       size = 9;
     }
@@ -750,7 +789,9 @@ export default function AIBuyerPanel({
       delivery_deadline: deliveryEta,
       size,
       max_retries: 2,
-      rawQuery: queryText
+      rawQuery: queryText,
+      needsClarification,
+      isNonPurchasable: false
     };
   };
 
@@ -803,7 +844,8 @@ export default function AIBuyerPanel({
           const clarifyMsg = {
             id: `agent-clarify-${Date.now()}`,
             sender: 'agent',
-            text: "I'd love to help you find that! Could you specify which product category you're looking for?\n\n• **Running Shoes** or **Sneakers**\n• **Smartwatches**\n• **Audio** *(Headphones / Earbuds)*\n• **Bags** *(Tech Backpacks / Gym Duffles)*",
+            isClarification: true,
+            text: "I'd love to help you find that! Could you please specify which product category you're looking for?",
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           };
           setMessages(prev => [...prev, clarifyMsg]);
@@ -823,8 +865,17 @@ export default function AIBuyerPanel({
           return;
         }
 
+        // Map backend response category to frontend catalog category
+        let mappedCategory = data.category || "Running";
+        const catLower = (data.category || "").toLowerCase();
+        if (catLower.includes("sneak")) mappedCategory = "Sneakers";
+        else if (catLower.includes("watch")) mappedCategory = "Watches";
+        else if (catLower.includes("audio") || catLower.includes("headphone") || catLower.includes("earbud")) mappedCategory = "Audio";
+        else if (catLower.includes("bag") || catLower.includes("pack")) mappedCategory = "Bags";
+        else if (catLower.includes("run") || catLower.includes("shoe")) mappedCategory = "Running";
+
         constraints = {
-          category: data.category || "Running",
+          category: mappedCategory,
           categoryLabel: data.categoryLabel || (data.category ? data.category.toLowerCase() : "running shoes"),
           budget_max: (data.budget_max !== undefined && data.budget_max !== null) ? data.budget_max : (data.budget_ceiling !== undefined ? data.budget_ceiling : null),
           delivery_deadline: data.delivery_deadline || data.delivery_by || "Friday (2026-08-29)",
@@ -837,19 +888,31 @@ export default function AIBuyerPanel({
       }
     } catch (err) {
       // Deterministic fallback if backend is offline
-      const isGreeting = /^(hi|hello|hey|greetings|hola|help|what can you do|who are you|hi there)[!.]*$/i.test(queryText.trim());
-      if (isGreeting && !targetProduct) {
-        const greetingMsg = {
-          id: `agent-greeting-${Date.now()}`,
+      const parsedLocal = parseNaturalLanguageIntent(queryText, targetProduct);
+      if (parsedLocal.needsClarification && !targetProduct) {
+        const clarifyMsg = {
+          id: `agent-clarify-${Date.now()}`,
           sender: 'agent',
-          text: "👋 Hello! I am your Autonomous AI Buyer Agent on Meridian.\n\nTell me what you'd like to buy and your constraints, for example:\n• *'running shoes under ₹3000, size 9'*\n• *'smartwatch under ₹3000 by tomorrow'*\n• *'wireless audio headphones under ₹2500'*\n• *'commuter tech backpack under ₹2500'*\n\nI will find the best candidates across merchant catalogs, enforce your budget mandate bounds, and execute payment with single-invoice cryptographic proof!",
+          isClarification: true,
+          text: "I'd love to help you find that! Could you please specify which product category you're looking for?",
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
-        setMessages(prev => [...prev, greetingMsg]);
+        setMessages(prev => [...prev, clarifyMsg]);
         setIsProcessing(false);
         return;
       }
-      constraints = parseNaturalLanguageIntent(queryText, targetProduct);
+      if (parsedLocal.isNonPurchasable && !targetProduct) {
+        const nonPurchasableMsg = {
+          id: `agent-info-${Date.now()}`,
+          sender: 'agent',
+          text: "I am Meridian, specialized in autonomous commerce across verified merchant catalogs (running shoes, sneakers, smartwatches, audio, bags). Ask me to find or purchase items for you!",
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        setMessages(prev => [...prev, nonPurchasableMsg]);
+        setIsProcessing(false);
+        return;
+      }
+      constraints = parsedLocal;
     }
 
     setMandateConstraints(constraints);
@@ -1285,34 +1348,52 @@ export default function AIBuyerPanel({
           style={{ whiteSpace: 'nowrap', fontSize: '0.72rem' }}
           title="Happy Path: Full automated bounded purchase"
         >
-          ⚡ Running Shoes &lt; ₹3k
+          ⚡ Shoes &lt; ₹3k
         </button>
 
         <button
-          onClick={() => handleSendQuery("smartwatch under ₹3000 by tomorrow", "none")}
+          onClick={() => handleSendQuery("I need shoes", "none")}
           className="btn btn-secondary btn-xs"
           style={{ whiteSpace: 'nowrap', fontSize: '0.72rem' }}
-          title="Smartwatch under ₹3k"
+          title="No Budget Specified: Auto-ranked by value"
         >
-          ⌚ Smartwatch &lt; ₹3k
+          👟 Shoes (No Limit)
         </button>
 
         <button
-          onClick={() => handleSendQuery("smartwatch under 1K by tomorrow", "mandate_breach")}
+          onClick={() => handleSendQuery("smartwatch under 1k by tomorrow", "none")}
           className="btn btn-secondary btn-xs"
-          style={{ whiteSpace: 'nowrap', fontSize: '0.72rem', color: '#b91c1c' }}
-          title="Failure Demo: Budget Ceiling Breach (₹1k vs ₹2.1k)"
+          style={{ whiteSpace: 'nowrap', fontSize: '0.72rem' }}
+          title="Smartwatch under 1k"
         >
-          ⚠️ Mandate Breach (&lt; ₹1k)
+          ⌚ Smartwatch &lt; 1k
         </button>
 
         <button
-          onClick={() => handleSendQuery("wireless audio headphones under ₹3000", "bad_signature")}
+          onClick={() => handleSendQuery("headphones 2k to 3k", "none")}
           className="btn btn-secondary btn-xs"
-          style={{ whiteSpace: 'nowrap', fontSize: '0.72rem', color: '#b91c1c' }}
-          title="Failure Demo: Simulates bad cryptographic signature rejection"
+          style={{ whiteSpace: 'nowrap', fontSize: '0.72rem' }}
+          title="Audio price range 2k-3k"
         >
-          🔒 Webhook Tamper
+          🎧 Audio 2k-3k
+        </button>
+
+        <button
+          onClick={() => handleSendQuery("waterproof tech backpack under 2000", "none")}
+          className="btn btn-secondary btn-xs"
+          style={{ whiteSpace: 'nowrap', fontSize: '0.72rem' }}
+          title="Bags & Backpacks under ₹2k"
+        >
+          🎒 Tech Bag &lt; ₹2k
+        </button>
+
+        <button
+          onClick={() => handleSendQuery("something nice for my trip", "none")}
+          className="btn btn-secondary btn-xs"
+          style={{ whiteSpace: 'nowrap', fontSize: '0.72rem', color: 'var(--accent-blue)' }}
+          title="Clarification Flow: Vague query triggers category selection"
+        >
+          ❓ Clarify Flow
         </button>
 
         <button
@@ -1322,6 +1403,24 @@ export default function AIBuyerPanel({
           title="Failure Demo: Mid-flow stockout recovery to rank 2"
         >
           🔄 Stockout Fallback
+        </button>
+
+        <button
+          onClick={() => handleSendQuery("smartwatch under 1K by tomorrow", "mandate_breach")}
+          className="btn btn-secondary btn-xs"
+          style={{ whiteSpace: 'nowrap', fontSize: '0.72rem', color: '#b91c1c' }}
+          title="Failure Demo: Budget Ceiling Breach (₹1k vs ₹2.1k)"
+        >
+          ⚠️ Mandate Breach
+        </button>
+
+        <button
+          onClick={() => handleSendQuery("wireless audio headphones under ₹3000", "bad_signature")}
+          className="btn btn-secondary btn-xs"
+          style={{ whiteSpace: 'nowrap', fontSize: '0.72rem', color: '#b91c1c' }}
+          title="Failure Demo: Simulates bad cryptographic signature rejection"
+        >
+          🔒 Webhook Tamper
         </button>
       </div>
 
@@ -1339,6 +1438,28 @@ export default function AIBuyerPanel({
               </div>
             )}
             <div style={{ whiteSpace: 'pre-wrap' }}>{m.text}</div>
+            
+            {m.isClarification && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px' }}>
+                {[
+                  { label: '👟 Running Shoes', query: 'running shoes under ₹3000, size 9, arrive by Friday' },
+                  { label: '👟 Sneakers', query: 'sneakers under ₹3000, size 9' },
+                  { label: '⌚ Smartwatches', query: 'smartwatch under 1k by tomorrow' },
+                  { label: '🎧 Audio / Earbuds', query: 'headphones 2k to 3k' },
+                  { label: '🎒 Bags & Backpacks', query: 'waterproof tech backpack under 2000' },
+                ].map(btn => (
+                  <button
+                    key={btn.label}
+                    onClick={() => handleSendQuery(btn.query, 'none')}
+                    className="btn btn-secondary btn-xs"
+                    style={{ fontSize: '0.72rem', borderRadius: 'var(--radius-pill)', border: '1px solid var(--border-medium)' }}
+                  >
+                    {btn.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <div style={{ fontSize: '0.66rem', color: m.sender === 'user' ? 'rgba(255,255,255,0.6)' : 'var(--text-muted)', marginTop: '4px', textAlign: 'right' }}>
               {m.time}
             </div>
