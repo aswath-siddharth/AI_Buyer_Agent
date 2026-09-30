@@ -682,12 +682,22 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   gap: 10px;
   align-items: center;
-  transition: all 0.18s ease;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.candidate-card-inline:hover {
+  border-color: var(--accent-blue);
+  background: var(--bg-subtle-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 .candidate-card-inline.winner {
   border-color: var(--accent-blue);
   background: var(--accent-blue-light);
+  box-shadow: 0 0 0 1.5px var(--accent-blue), var(--shadow-sm);
 }
 
 .candidate-img {

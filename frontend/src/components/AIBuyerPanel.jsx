@@ -1021,6 +1021,47 @@ export default function AIBuyerPanel({
       }, 650);
   };
 
+  // Allow user to manually select an alternative evaluated candidate
+  const handleSelectCandidate = (candidate) => {
+    if (!candidate || isExecutingTrace) return;
+
+    const exceedsBudget = mandateConstraints?.budget_max && candidate.price > mandateConstraints.budget_max;
+
+    if (exceedsBudget) {
+      // If user chooses an item over the previous ceiling, automatically update mandate budget
+      setMandateConstraints(prev => ({
+        ...prev,
+        budget_max: candidate.price
+      }));
+    }
+
+    setFinalPick(candidate);
+    setHasZeroMatch(false);
+
+    // Update candidate list to mark this one as selected
+    setCandidateList(prev => prev.map(item => {
+      if (item.id === candidate.id) {
+        return {
+          ...item,
+          status: 'winner',
+          reason: `✓ Selected by User: ₹${item.price.toLocaleString('en-IN')}, rating ${item.rating}★, arrives ${item.eta}`
+        };
+      } else {
+        return {
+          ...item,
+          status: item.status === 'stockout_first' ? 'stockout_first' : 'candidate',
+          reason: item.status === 'stockout_first' 
+            ? item.reason 
+            : `Available alternative: ₹${item.price.toLocaleString('en-IN')}, rating ${item.rating}★, ETA: ${item.eta}`
+        };
+      }
+    }));
+
+    const explainText = `🎯 **Selected Product:** **${candidate.title}** at ₹${candidate.price.toLocaleString('en-IN')} (Delivers ${candidate.eta}, merchant ${candidate.merchant}, rated ${candidate.rating}★).`;
+    setExplainabilityReason(explainText);
+    setShowConfirmationPrompt(true);
+  };
+
 
 
   // Start the Live 7-Stage Execution Trace
@@ -1474,14 +1515,20 @@ export default function AIBuyerPanel({
             </div>
 
             {candidateList.map((c) => {
-              const isWin = c.status === 'winner';
+              const isWin = (finalPick && finalPick.id === c.id) || c.status === 'winner';
               const isRej = c.status === 'rejected';
               const isStockout1 = c.status === 'stockout_first';
 
               return (
                 <div 
                   key={c.id} 
+                  onClick={() => handleSelectCandidate(c)}
                   className={`candidate-card-inline ${isWin ? 'winner' : ''}`}
+                  style={{
+                    cursor: isExecutingTrace ? 'default' : 'pointer',
+                    position: 'relative'
+                  }}
+                  title={isWin ? `${c.title} (Currently Selected)` : `Click to select ${c.title}`}
                 >
                   <img src={c.image} alt={c.title} className="candidate-img" />
                   
@@ -1499,6 +1546,7 @@ export default function AIBuyerPanel({
                       <span>{c.merchant}</span>
                       <span>•</span>
                       <span>ETA: {c.eta}</span>
+                      {!isWin && <span style={{ color: 'var(--accent-blue)', fontWeight: 600 }}>• Click to pick</span>}
                     </div>
 
                     <div style={{
@@ -1510,6 +1558,24 @@ export default function AIBuyerPanel({
                       {isWin ? '✓ ' : isRej ? '✕ ' : isStockout1 ? '⚠ ' : '○ '}
                       {c.reason}
                     </div>
+                  </div>
+
+                  {/* Radio / Selection Indicator */}
+                  <div style={{
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    border: isWin ? '2px solid var(--accent-blue)' : '2px solid var(--border-medium)',
+                    background: isWin ? 'var(--accent-blue)' : 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    transition: 'all 0.15s ease'
+                  }}>
+                    {isWin && (
+                      <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ffffff' }} />
+                    )}
                   </div>
                 </div>
               );
