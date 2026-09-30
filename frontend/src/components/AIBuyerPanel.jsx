@@ -1348,7 +1348,7 @@ export default function AIBuyerPanel({
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                AI Buyer Agent
+                Meridian AI Agent
               </span>
               <span className="badge badge-success" style={{ fontSize: '0.66rem' }}>
                 Active
