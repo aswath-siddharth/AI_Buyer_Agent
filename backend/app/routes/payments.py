@@ -47,6 +47,9 @@ router = APIRouter(
 
 load_dotenv()
 
+from ..aws_config import load_secrets_from_secrets_manager
+load_secrets_from_secrets_manager()
+
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET")

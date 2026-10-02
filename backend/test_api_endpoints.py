@@ -59,15 +59,18 @@ def test_api_suite():
     assert len(sessions) > 0
 
     # 4. Test PATCH /products/{id}/stock
-    print("\n[4] Testing PATCH /products/1/stock (live stock modification)...")
-    stock_res = client.patch("/products/1/stock?stock=14")
+    print("\n[4] Testing PATCH /products/{id}/stock (live stock modification)...")
+    all_products = client.get("/products").json()
+    test_prod_id = all_products[0]["id"]
+    original_stock = all_products[0]["stock"]
+    stock_res = client.patch(f"/products/{test_prod_id}/stock?stock=14")
     assert stock_res.status_code == 200
     prod = stock_res.json()
     print(f"Updated product '{prod['title']}' stock to {prod['stock']}.")
     assert prod["stock"] == 14
 
     # Restore stock
-    client.patch("/products/1/stock?stock=12")
+    client.patch(f"/products/{test_prod_id}/stock?stock={original_stock}")
 
     # 5. Test POST /buyer/run with simulate_failure="price_mismatch"
     print("\n[5] Testing POST /buyer/run with simulate_failure='price_mismatch'...")

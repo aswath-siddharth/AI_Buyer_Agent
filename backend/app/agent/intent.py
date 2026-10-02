@@ -5,8 +5,14 @@ from datetime import date, timedelta
 from typing import Optional, Any, Dict
 
 from dotenv import load_dotenv
-from groq import Groq
 from pydantic import BaseModel, Field, model_validator
+
+try:
+    from groq import Groq
+except ImportError:
+    Groq = None
+
+from ..aws_config import get_bedrock_runtime_client, BEDROCK_MODEL_ID
 
 load_dotenv()
 
@@ -403,33 +409,29 @@ def fallback_deterministic_parse(user_message: str) -> IntentMandate:
 
 def parse_intent(user_message: str) -> IntentMandate:
     """
-    Convert natural-language shopping intent into a structured IntentMandate using Groq LLM (Llama 3.3 70B),
-    with automatic deterministic fallback conforming to the Meridian Intent Mandate specification.
+    Convert natural-language shopping intent into a structured IntentMandate using Amazon Bedrock
+    (Meta Llama 3.3 70B: us.meta.llama3-3-70b-instruct-v1:0), with automatic deterministic fallback.
     """
-    api_key = os.getenv("GROQ_API_KEY")
-
-    if not api_key:
-        return fallback_deterministic_parse(user_message)
-
     try:
-        client = Groq(api_key=api_key)
+        bedrock = get_bedrock_runtime_client()
 
-        completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_message}
-            ],
-            response_format={"type": "json_object"},
-            temperature=0.0,
-            timeout=5.0
+        response = bedrock.converse(
+            modelId=BEDROCK_MODEL_ID,
+            system=[{"text": SYSTEM_PROMPT}],
+            messages=[{"role": "user", "content": [{"text": user_message}]}],
+            inferenceConfig={"temperature": 0.0, "maxTokens": 400}
         )
 
-        content = completion.choices[0].message.content
+        content = response["output"]["message"]["content"][0]["text"]
         if not content:
             return fallback_deterministic_parse(user_message)
 
-        data = json.loads(content)
+        clean_content = content.strip()
+        if clean_content.startswith("```"):
+            clean_content = re.sub(r"^```(?:json)?\s*", "", clean_content)
+            clean_content = re.sub(r"\s*```$", "", clean_content)
+
+        data = json.loads(clean_content)
 
         # Parse budget
         budget_ceiling = None
@@ -468,5 +470,6 @@ def parse_intent(user_message: str) -> IntentMandate:
         )
 
     except Exception as e:
+        print(f"Bedrock parsing notice: {e}. Using deterministic parser.")
         # Gracefully fall back to deterministic parser on network or API latency
         return fallback_deterministic_parse(user_message)
