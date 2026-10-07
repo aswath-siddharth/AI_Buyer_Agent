@@ -59,15 +59,31 @@ fi
 # ------------------------------------------------------------------------------
 # 2. Pull Latest Changes from Git
 # ------------------------------------------------------------------------------
-echo -e "\n${YELLOW}📥 Pulling latest changes from Git...${NC}"
+echo -e "\n${YELLOW}📥 Automatically pulling latest changes from Git...${NC}"
 if [ -d ".git" ]; then
+    # Fetch all remote branches
+    git fetch --all --prune || true
+    
+    # Detect branch (main or master or current)
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
+    
+    # If branch is detached or invalid, default to main
+    if [ "$CURRENT_BRANCH" = "HEAD" ] || [ -z "$CURRENT_BRANCH" ]; then
+        CURRENT_BRANCH="main"
+    fi
+    
     echo -e "   Branch: ${CYAN}${CURRENT_BRANCH}${NC}"
-    git pull origin "$CURRENT_BRANCH" || {
-        echo -e "${RED}⚠️  Git pull failed. Continuing with local files...${NC}"
-    }
+    
+    # Ensure tracking is set and pull
+    git branch --set-upstream-to="origin/$CURRENT_BRANCH" "$CURRENT_BRANCH" 2>/dev/null || true
+    if git pull origin "$CURRENT_BRANCH"; then
+        echo -e "${GREEN}✅ Successfully pulled latest changes from Git.${NC}"
+    else
+        echo -e "${YELLOW}⚠️ Direct branch pull had warnings. Attempting fallback git pull...${NC}"
+        git pull || echo -e "${RED}⚠️ Continuing with existing files...${NC}"
+    fi
 else
-    echo -e "${YELLOW}⚠️  Not a git repository. Skipping git pull.${NC}"
+    echo -e "${YELLOW}⚠️ Not a git repository. Skipping git pull.${NC}"
 fi
 
 # ------------------------------------------------------------------------------
