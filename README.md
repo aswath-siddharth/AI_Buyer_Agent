@@ -43,14 +43,18 @@ As autonomous AI agents evolve from conversational assistants into financial tra
 
 ---
 
-## 🔗 Live Deployments & Cloud Endpoints
+## 🔗 Cloud Infrastructure & Hosting Endpoints
 
-| Component | Platform / Infrastructure | Direct URL / Access |
+| Component | Cloud Service / Infrastructure | Configuration / Role |
 |---|---|---|
-| 🌐 **Frontend Web Application** | Render Static Site (Global Edge CDN) | 👉 [**https://razorpay-buildathon-sid.onrender.com**](https://razorpay-buildathon-sid.onrender.com) |
-| ⚡ **Backend REST API & Swagger Docs** | Render Web Service (FastAPI / ASGI) | 👉 [**https://razorpay-buildathon-sid-1.onrender.com/docs**](https://razorpay-buildathon-sid-1.onrender.com/docs) |
-| 🔒 **Cloud Security & Secrets** | AWS Secrets Manager (`ai-buyer/secrets`) | Dynamic Boto3 Runtime Fetching |
-| 🗄️ **Relational Database** | AWS RDS PostgreSQL / Local SQLite | Dynamic URL Discovery & SQLAlchemy ORM |
+| 🖥️ **Host Compute (IaaS)** | **AWS EC2 (Elastic Compute Cloud)** | Multi-container Docker Compose runtime (Ubuntu/Linux) |
+| 🌐 **Frontend Web Server** | **Nginx Alpine (Port 80)** | SPA Static Server & Reverse Proxy to Backend API (`/api/`) |
+| ⚡ **Backend API Engine** | **FastAPI / Uvicorn (Port 8000)** | Asynchronous Python 3.11 ASGI Microservice |
+| 🔒 **Cloud Security & Secrets** | **AWS Secrets Manager** (`ai-buyer/secrets`) | Dynamic zero-trust credential isolation via IAM roles |
+| 🗄️ **Relational Database** | **AWS RDS (PostgreSQL)** / Local SQLite | Dynamic VPC database discovery & connection pooling |
+| 🧠 **Cloud LLM Inference** | **AWS Bedrock** (`Llama 3.3 70B`) / Groq | Serverless AI Intent Mandate Parsing |
+| 🌐 **Live Web Application** | AWS EC2 / Render Cloud Edge | 👉 [**https://razorpay-buildathon-sid.onrender.com**](https://razorpay-buildathon-sid.onrender.com) |
+| ⚡ **Backend Swagger API Docs** | FastAPI Swagger Interactive UI | 👉 [**https://razorpay-buildathon-sid-1.onrender.com/docs**](https://razorpay-buildathon-sid-1.onrender.com/docs) |
 | 📦 **GitHub Repository** | GitHub | 👉 [**aswath-siddharth/Razorpay-Buildathon-SID-**](https://github.com/aswath-siddharth/Razorpay-Buildathon-SID-) |
 
 ---
