@@ -12,6 +12,7 @@ router = APIRouter(
 )
 
 
+@router.get("", response_model=list[MerchantResponse])
 @router.get("/", response_model=list[MerchantResponse])
 def get_merchants(
     db: Session = Depends(get_db)

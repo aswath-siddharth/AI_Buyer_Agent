@@ -19,6 +19,7 @@ import {
   Layers,
   ArrowRight
 } from 'lucide-react';
+import { API_BASE } from '../config';
 
 export default function ConfirmationCard({ 
   result, 
@@ -50,7 +51,7 @@ export default function ConfirmationCard({
   const handleTestTamper = async () => {
     setTamperTestStatus('testing');
     try {
-      const resp = await fetch('http://localhost:8000/payments/simulate-webhook', {
+      const resp = await fetch(`${API_BASE}/payments/simulate-webhook`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
