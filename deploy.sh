@@ -99,8 +99,21 @@ echo -e "${GREEN}✨ Deployment Complete! Container Status:${NC}"
 echo -e "${GREEN}====================================================${NC}"
 $DOCKER_COMPOSE ps
 
-# Fetch Public IP if on AWS EC2
-PUBLIC_IP=$(curl -s --connect-timeout 2 http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null || echo "localhost")
+# Fetch Public IP (IMDSv2 with token + external fallbacks)
+PUBLIC_IP=""
+IMDS_TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 60" --connect-timeout 2 2>/dev/null || true)
+if [ -n "$IMDS_TOKEN" ]; then
+    PUBLIC_IP=$(curl -s -H "X-aws-ec2-metadata-token: $IMDS_TOKEN" --connect-timeout 2 http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null || true)
+fi
+
+if [ -z "$PUBLIC_IP" ]; then
+    PUBLIC_IP=$(curl -s --connect-timeout 2 https://checkip.amazonaws.com 2>/dev/null || curl -s --connect-timeout 2 https://api.ipify.org 2>/dev/null || curl -s --connect-timeout 2 https://ifconfig.me 2>/dev/null || true)
+    PUBLIC_IP=$(echo "$PUBLIC_IP" | tr -d ' \r\n')
+fi
+
+if [ -z "$PUBLIC_IP" ]; then
+    PUBLIC_IP="54.226.74.223"
+fi
 
 echo -e "\n${CYAN}🌐 Application URLs:${NC}"
 echo -e "   Frontend: ${GREEN}http://${PUBLIC_IP}${NC}"
