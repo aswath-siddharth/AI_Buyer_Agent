@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from ..database import get_db
 from ..models import Product
@@ -16,7 +16,7 @@ router = APIRouter(
 def get_products(
     db: Session = Depends(get_db)
 ):
-    return db.query(Product).all()
+    return db.query(Product).options(selectinload(Product.reviews)).all()
 
 
 @router.get("/{product_id}", response_model=ProductResponse)
@@ -26,6 +26,7 @@ def get_product(
 ):
     product = (
         db.query(Product)
+        .options(selectinload(Product.reviews))
         .filter(Product.id == product_id)
         .first()
     )
@@ -37,6 +38,7 @@ def get_product(
         )
 
     return product
+
 
 
 @router.patch("/{product_id}/stock", response_model=ProductResponse)

@@ -99,3 +99,31 @@ def get_database_url() -> str:
         print(f"Notice: Could not load RDS credentials from AWS Secrets Manager ({e}).")
 
     return "sqlite:///./ai_buyer.db"
+
+
+def generate_text_embedding(text: str, dimensions: int = 1024) -> list[float] | None:
+    """
+    Generate normalized 1024-dimensional text embeddings using Amazon Bedrock Titan Text Embeddings v2
+    (amazon.titan-embed-text-v2:0). Falls back gracefully on network or offline scenarios.
+    """
+    if not text or not str(text).strip():
+        return None
+    try:
+        client = get_bedrock_runtime_client()
+        body = json.dumps({
+            "inputText": str(text).strip()[:1000],
+            "dimensions": dimensions,
+            "normalize": True
+        })
+        response = client.invoke_model(
+            modelId="amazon.titan-embed-text-v2:0",
+            body=body,
+            contentType="application/json",
+            accept="application/json"
+        )
+        data = json.loads(response["body"].read())
+        return data.get("embedding")
+    except Exception as e:
+        print(f"Notice: Bedrock embedding generation fallback ({e})")
+        return None
+

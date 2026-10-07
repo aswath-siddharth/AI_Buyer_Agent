@@ -4,34 +4,52 @@ import os
 # Ensure backend directory is in python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from sqlalchemy import text
 from app.database import SessionLocal, engine, Base
-from app.models import Merchant, Product, PaymentMandate, AuditEvent
+from app.models import Merchant, Product, ProductReview, PaymentMandate, AuditEvent
+from app.aws_config import generate_text_embedding
+from app.review_data import PRODUCT_REVIEWS_CATALOG
 
 
 def seed_database(force_reseed=False):
+    # Ensure pgvector extension is enabled on PostgreSQL
+    try:
+        with engine.connect() as conn:
+            if engine.dialect.name == "postgresql":
+                conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+                conn.commit()
+    except Exception as e:
+        print(f"Notice during vector extension check: {e}")
+
     if force_reseed:
-        Base.metadata.drop_all(bind=engine)
+        try:
+            Base.metadata.drop_all(bind=engine)
+        except Exception as e:
+            print(f"Notice during drop_all: {e}")
+
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 
     try:
         if force_reseed:
-            print("Force reseed requested. Clearing existing products and merchants...")
+            print("Force reseed requested. Clearing existing products, reviews, and merchants...")
             db.query(AuditEvent).delete()
             db.query(PaymentMandate).delete()
+            db.query(ProductReview).delete()
             db.query(Product).delete()
             db.query(Merchant).delete()
             db.commit()
         else:
             existing_product = db.query(Product).first()
             if existing_product:
-                print("Database already seeded. Refreshing images and products...")
-                # We can update images if any are missing
+                print("Database already seeded. Refreshing products and reviews...")
                 db.query(AuditEvent).delete()
                 db.query(PaymentMandate).delete()
+                db.query(ProductReview).delete()
                 db.query(Product).delete()
                 db.query(Merchant).delete()
                 db.commit()
+
 
         merchants = [
             Merchant(name="TechMart", rating=4.8),
@@ -598,10 +616,59 @@ def seed_database(force_reseed=False):
         db.add_all(products)
         db.commit()
 
-        print(f"Seed completed successfully. {len(merchants)} merchants and {len(products)} products with rich images seeded.")
+        print(f"Base products created ({len(products)}). Generating Amazon Bedrock Titan embeddings and seeding 10+ reviews per product...")
+
+        total_reviews_seeded = 0
+        embeddings_generated = 0
+
+        for p in products:
+            db.refresh(p)
+
+            # Generate 1024-dimension Amazon Bedrock Titan Text Embedding
+            text_to_embed = (
+                f"Product: {p.title}. Category: {p.attributes.get('category', '')}. "
+                f"Brand: {p.attributes.get('brand', '')}. "
+                f"Colors: {', '.join(str(c) for c in p.attributes.get('color', [])) if isinstance(p.attributes.get('color'), list) else ''}. "
+                f"Sizes: {', '.join(str(s) for s in p.attributes.get('size', [])) if isinstance(p.attributes.get('size'), list) else ''}. "
+                f"Price: ₹{p.price:.0f}. Delivery ETA: {p.delivery_eta}."
+            )
+
+            try:
+                emb = generate_text_embedding(text_to_embed)
+                if emb and len(emb) == 1024:
+                    p.embedding = emb
+                    embeddings_generated += 1
+            except Exception as e:
+                print(f"Notice: Bedrock embedding skipped for '{p.title}': {e}")
+
+            # Populate 10+ authentic reviews for this product
+            reviews_list = PRODUCT_REVIEWS_CATALOG.get(p.title, [])
+            for rev in reviews_list:
+                db_rev = ProductReview(
+                    product_id=p.id,
+                    author=rev["author"],
+                    rating=rev["rating"],
+                    sentiment=rev["sentiment"],
+                    sentiment_score=rev["sentiment_score"],
+                    comment=rev["comment"],
+                    aspects=rev.get("aspects"),
+                    verified_purchase=rev.get("verified_purchase", True),
+                    created_at=rev.get("created_at", "2026-08-01"),
+                )
+                db.add(db_rev)
+                total_reviews_seeded += 1
+
+        db.commit()
+
+        print(
+            f"Seed completed successfully! "
+            f"{len(merchants)} merchants, {len(products)} products, "
+            f"{embeddings_generated} vector embeddings, and {total_reviews_seeded} customer reviews seeded."
+        )
 
     finally:
         db.close()
+
 
 
 if __name__ == "__main__":

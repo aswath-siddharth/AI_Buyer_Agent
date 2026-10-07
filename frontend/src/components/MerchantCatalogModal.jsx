@@ -7,6 +7,8 @@ export default function MerchantCatalogModal({ isOpen, onClose }) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [updatingId, setUpdatingId] = useState(null);
+  const [expandedReviewsId, setExpandedReviewsId] = useState(null);
+
 
   useEffect(() => {
     if (isOpen) {
@@ -229,10 +231,94 @@ export default function MerchantCatalogModal({ isOpen, onClose }) {
                       </div>
                     </div>
 
+                    {/* Customer Reviews & Sentiment Drawer */}
+                    {item.reviews && item.reviews.length > 0 && (
+                      <div style={{ marginTop: '2px' }}>
+                        <button
+                          onClick={() => setExpandedReviewsId(expandedReviewsId === item.id ? null : item.id)}
+                          style={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '6px 8px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border-subtle)',
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            color: 'var(--text-secondary)',
+                            fontSize: '0.74rem',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <Star size={12} color="#f59e0b" fill="#f59e0b" />
+                            <strong style={{ color: 'var(--text-primary)' }}>
+                              {(item.reviews.reduce((acc, r) => acc + r.rating, 0) / item.reviews.length).toFixed(1)}★
+                            </strong>
+                            <span>({item.reviews.length} reviews)</span>
+                          </span>
+                          <span style={{ color: 'var(--accent-blue)', fontWeight: 600 }}>
+                            {expandedReviewsId === item.id ? 'Hide Reviews ▲' : 'View Reviews ▼'}
+                          </span>
+                        </button>
+
+                        {/* Expanded Reviews List */}
+                        {expandedReviewsId === item.id && (
+                          <div style={{
+                            marginTop: '6px',
+                            maxHeight: '190px',
+                            overflowY: 'auto',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '6px',
+                            padding: '6px',
+                            background: 'rgba(0, 0, 0, 0.25)',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border-subtle)'
+                          }}>
+                            {item.reviews.map((rev) => {
+                              const isPos = rev.sentiment === 'POSITIVE';
+                              const isNeg = rev.sentiment === 'NEGATIVE';
+                              return (
+                                <div key={rev.id} style={{
+                                  padding: '6px 8px',
+                                  borderRadius: '4px',
+                                  background: 'rgba(255, 255, 255, 0.04)',
+                                  fontSize: '0.72rem',
+                                  borderLeft: isPos ? '3px solid #10b981' : isNeg ? '3px solid #ef4444' : '3px solid #f59e0b'
+                                }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                                    <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{rev.author}</span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                      <span style={{ color: '#f59e0b', fontWeight: 700 }}>{rev.rating}★</span>
+                                      <span style={{
+                                        fontSize: '0.62rem',
+                                        fontWeight: 700,
+                                        padding: '0 4px',
+                                        borderRadius: '3px',
+                                        background: isPos ? 'rgba(16, 185, 129, 0.15)' : isNeg ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                                        color: isPos ? '#10b981' : isNeg ? '#ef4444' : '#f59e0b'
+                                      }}>
+                                        {rev.sentiment}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: 1.3 }}>
+                                    "{rev.comment}"
+                                  </p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                   </div>
                 );
               })}
             </div>
+
           )}
         </div>
 

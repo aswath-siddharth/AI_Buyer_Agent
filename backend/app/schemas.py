@@ -12,6 +12,22 @@ class MerchantResponse(BaseModel):
         from_attributes = True
 
 
+class ProductReviewResponse(BaseModel):
+    id: int
+    product_id: int
+    author: str
+    rating: float
+    sentiment: str
+    sentiment_score: float
+    comment: str
+    aspects: dict | None = None
+    verified_purchase: bool
+    created_at: str
+
+    class Config:
+        from_attributes = True
+
+
 class ProductResponse(BaseModel):
     id: int
     merchant_id: int
@@ -21,9 +37,11 @@ class ProductResponse(BaseModel):
     attributes: dict
     delivery_eta: str
     image_url: str | None = None
+    reviews: list[ProductReviewResponse] = []
 
     class Config:
         from_attributes = True
+
 
 
 class PaymentMandateCreate(BaseModel):

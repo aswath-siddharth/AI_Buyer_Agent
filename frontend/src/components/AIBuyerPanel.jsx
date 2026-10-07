@@ -940,43 +940,88 @@ export default function AIBuyerPanel({
     };
     setMessages(prev => [...prev, agentAckMsg]);
 
-      setTimeout(() => {
-        let pool = CATALOG_DATABASE.filter(p => p.category === constraints.category);
-        if (pool.length === 0) pool = CATALOG_DATABASE.slice(0, 4);
+      setTimeout(async () => {
+        let evaluatedCandidates = [];
+        let backendDiscovery = null;
 
-        if (targetProduct) {
-          pool = [targetProduct, ...pool.filter(p => p.id !== targetProduct.id)];
+        // Query backend Bedrock Titan semantic vector search & PostgreSQL pgvector
+        try {
+          const discResp = await fetch(`${API_BASE}/buyer/discover`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: queryText })
+          });
+          if (discResp.ok) {
+            const discData = await discResp.json();
+            if (discData.result && discData.result.all_candidates && discData.result.all_candidates.length > 0) {
+              backendDiscovery = discData.result;
+            }
+          }
+        } catch (e) {
+          console.log("Using local discovery fallback:", e);
         }
 
-        const evaluatedCandidates = pool.map(item => {
-          const hasBudgetLimit = constraints.budget_max !== null && constraints.budget_max !== undefined;
-          const exceedsBudget = hasBudgetLimit && item.price > constraints.budget_max;
-          let candidateStatus = 'candidate';
-          let candidateReason = '';
+        if (backendDiscovery) {
+          evaluatedCandidates = backendDiscovery.all_candidates.map(item => {
+            const isAccepted = item.accepted;
+            return {
+              id: item.product_id,
+              title: item.title,
+              category: constraints.category,
+              price: item.price,
+              rating: item.merchant_rating,
+              eta: item.delivery_eta,
+              merchant: item.merchant,
+              image: item.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=700&q=80',
+              status: isAccepted ? 'candidate' : 'rejected',
+              reason: item.explanation,
+              score: item.score || 0,
+              semantic_similarity: item.semantic_similarity,
+              sentiment_summary: item.sentiment_summary,
+              score_breakdown: item.score_breakdown,
+              reviews_sample: item.reviews_sample || []
+            };
+          });
+        } else {
+          let pool = CATALOG_DATABASE.filter(p => p.category === constraints.category);
+          if (pool.length === 0) pool = CATALOG_DATABASE.slice(0, 4);
 
-          if (exceedsBudget) {
-            candidateStatus = 'rejected';
-            candidateReason = `✕ Rejected: Price ₹${item.price.toLocaleString('en-IN')} exceeds budget ceiling ₹${constraints.budget_max.toLocaleString('en-IN')}`;
-          } else if (hasBudgetLimit) {
-            candidateStatus = 'candidate';
-            candidateReason = `Meets budget (₹${item.price.toLocaleString('en-IN')} ≤ ₹${constraints.budget_max.toLocaleString('en-IN')}), rating ${item.rating}★, ETA: ${item.eta}`;
-          } else {
-            candidateStatus = 'candidate';
-            candidateReason = `Available: ₹${item.price.toLocaleString('en-IN')}, rating ${item.rating}★, ETA: ${item.eta}`;
+          if (targetProduct) {
+            pool = [targetProduct, ...pool.filter(p => p.id !== targetProduct.id)];
           }
 
-          return {
-            ...item,
-            status: candidateStatus,
-            reason: candidateReason,
-            score: (10000 - item.price) / 10000 + (item.rating / 10)
-          };
-        });
+          evaluatedCandidates = pool.map(item => {
+            const hasBudgetLimit = constraints.budget_max !== null && constraints.budget_max !== undefined;
+            const exceedsBudget = hasBudgetLimit && item.price > constraints.budget_max;
+            let candidateStatus = 'candidate';
+            let candidateReason = '';
 
-        const viableCandidates = evaluatedCandidates.filter(c => c.status !== 'rejected').sort((a, b) => a.price - b.price);
+            if (exceedsBudget) {
+              candidateStatus = 'rejected';
+              candidateReason = `✕ Rejected: Price ₹${item.price.toLocaleString('en-IN')} exceeds budget ceiling ₹${constraints.budget_max.toLocaleString('en-IN')}`;
+            } else if (hasBudgetLimit) {
+              candidateStatus = 'candidate';
+              candidateReason = `Meets budget (₹${item.price.toLocaleString('en-IN')} ≤ ₹${constraints.budget_max.toLocaleString('en-IN')}), rating ${item.rating}★, ETA: ${item.eta}`;
+            } else {
+              candidateStatus = 'candidate';
+              candidateReason = `Available: ₹${item.price.toLocaleString('en-IN')}, rating ${item.rating}★, ETA: ${item.eta}`;
+            }
+
+            return {
+              ...item,
+              status: candidateStatus,
+              reason: candidateReason,
+              score: (10000 - item.price) / 10000 + (item.rating / 10)
+            };
+          });
+        }
+
+        const viableCandidates = evaluatedCandidates
+          .filter(c => c.status !== 'rejected')
+          .sort((a, b) => (b.score || 0) - (a.score || 0));
 
         if (viableCandidates.length === 0) {
-          const lowestCandidate = pool.slice().sort((a, b) => a.price - b.price)[0];
+          const lowestCandidate = evaluatedCandidates.slice().sort((a, b) => a.price - b.price)[0] || CATALOG_DATABASE[0];
           setCandidateList(evaluatedCandidates.slice(0, 3));
           setHasZeroMatch(true);
           setFinalPick(lowestCandidate);
@@ -1000,7 +1045,9 @@ export default function AIBuyerPanel({
           }
         } else {
           winner.status = 'winner';
-          winner.reason = `✓ Best candidate: Lowest price (₹${winner.price.toLocaleString('en-IN')}) with ${winner.rating}★ rating, arrives ${winner.eta}`;
+          const simText = winner.semantic_similarity ? ` (${Math.round(winner.semantic_similarity * 100)}% semantic match)` : '';
+          const sentimentText = winner.sentiment_summary ? `, ${winner.sentiment_summary.sentiment_label}` : '';
+          winner.reason = `✓ Best candidate: ₹${winner.price.toLocaleString('en-IN')} with ${winner.rating}★ rating${simText}${sentimentText}, arrives ${winner.eta}`;
         }
 
         const finalList = [
@@ -1019,15 +1066,23 @@ export default function AIBuyerPanel({
           ? `saved ₹${savedAmount.toLocaleString('en-IN')} vs ₹${constraints.budget_max.toLocaleString('en-IN')} ceiling, ` 
           : '';
         
+        const semanticDetail = chosen.semantic_similarity 
+          ? ` • **Semantic Fit:** ${Math.round(chosen.semantic_similarity * 100)}% match` 
+          : '';
+        const sentimentDetail = chosen.sentiment_summary
+          ? ` • **Review Sentiment:** ${chosen.sentiment_summary.sentiment_label} (${chosen.sentiment_summary.total_reviews} reviews)`
+          : '';
+
         const explainText = scenario === 'stockout'
           ? `🎯 **Final Pick:** **${chosen.title}** at ₹${chosen.price.toLocaleString('en-IN')} (Recovered gracefully to Rank #2 from ${chosen.merchant} after Rank #1 stockout).`
-          : `🎯 **Final Pick:** **${chosen.title}** at ₹${chosen.price.toLocaleString('en-IN')} (${savedText}delivers ${chosen.eta}, merchant ${chosen.merchant}, rated ${chosen.rating}★).`;
+          : `🎯 **Final Pick:** **${chosen.title}** at ₹${chosen.price.toLocaleString('en-IN')} (${savedText}delivers ${chosen.eta}, merchant ${chosen.merchant}, rated ${chosen.rating}★${semanticDetail}${sentimentDetail}).`;
 
         setExplainabilityReason(explainText);
         setShowConfirmationPrompt(true);
         setIsProcessing(false);
-      }, 650);
+      }, 500);
   };
+
 
   // Allow user to manually select an alternative evaluated candidate
   const handleSelectCandidate = (candidate) => {
@@ -1561,6 +1616,51 @@ export default function AIBuyerPanel({
                       {!isWin && <span style={{ color: 'var(--accent-blue)', fontWeight: 600 }}>• Click to pick</span>}
                     </div>
 
+                    {/* Semantic Match & Review Sentiment Pills */}
+                    {(c.semantic_similarity !== undefined || c.sentiment_summary) && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+                        {c.semantic_similarity !== undefined && (
+                          <span style={{
+                            fontSize: '0.66rem',
+                            fontWeight: 700,
+                            padding: '1px 6px',
+                            borderRadius: '4px',
+                            background: 'rgba(0, 102, 255, 0.08)',
+                            color: 'var(--accent-blue)',
+                            border: '1px solid rgba(0, 102, 255, 0.2)'
+                          }}>
+                            🎯 {Math.round(c.semantic_similarity * 100)}% match
+                          </span>
+                        )}
+                        {c.sentiment_summary && (
+                          <span style={{
+                            fontSize: '0.66rem',
+                            fontWeight: 700,
+                            padding: '1px 6px',
+                            borderRadius: '4px',
+                            background: 'rgba(16, 185, 129, 0.08)',
+                            color: '#059669',
+                            border: '1px solid rgba(16, 185, 129, 0.2)'
+                          }}>
+                            💬 {Math.round(c.sentiment_summary.positive_ratio * 100)}% pos ({c.sentiment_summary.total_reviews} revs)
+                          </span>
+                        )}
+                        {c.score > 0 && (
+                          <span style={{
+                            fontSize: '0.66rem',
+                            fontWeight: 700,
+                            padding: '1px 6px',
+                            borderRadius: '4px',
+                            background: 'rgba(245, 158, 11, 0.08)',
+                            color: '#d97706',
+                            border: '1px solid rgba(245, 158, 11, 0.2)'
+                          }}>
+                            ⭐ {c.score.toFixed(1)}/100
+                          </span>
+                        )}
+                      </div>
+                    )}
+
                     <div style={{
                       fontSize: '0.72rem',
                       fontWeight: 600,
@@ -1571,6 +1671,7 @@ export default function AIBuyerPanel({
                       {c.reason}
                     </div>
                   </div>
+
 
                   {/* Radio / Selection Indicator */}
                   <div style={{

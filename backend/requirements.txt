@@ -7,3 +7,4 @@ razorpay==2.0.1
 groq==0.37.1
 boto3>=1.35.0
 psycopg2-binary>=2.9.9
+pgvector>=0.3.0

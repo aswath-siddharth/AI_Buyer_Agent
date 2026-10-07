@@ -152,6 +152,7 @@ def test_real_db_stock_failure_and_recovery():
     db = SessionLocal()
     top_prod = None
     original_stock = 2
+    second_title = None
     try:
         mandate = IntentMandate(
             category="running_shoes",
@@ -162,8 +163,9 @@ def test_real_db_stock_failure_and_recovery():
         )
 
         def deplete_candidate_mid_flow(candidates, session_db):
-            nonlocal top_prod, original_stock
+            nonlocal top_prod, original_stock, second_title
             first_id = candidates[0]["product_id"]
+            second_title = candidates[1]["title"]
             top_prod = session_db.query(Product).filter(Product.id == first_id).first()
             original_stock = top_prod.stock
             print(f"\n[Mid-flow Event] Product '{top_prod.title}' was in stock ({original_stock}) during discovery,")
@@ -187,7 +189,7 @@ def test_real_db_stock_failure_and_recovery():
 
         assert result["status"] == "PAYMENT_READY"
         assert result["retries_used"] == 1
-        assert result["selected_product"]["title"] == "Nike Downshifter 12", "Must have fallen back to candidate #2"
+        assert result["selected_product"]["title"] == second_title, f"Must have fallen back to candidate #2 ({second_title})"
 
         print("\n>>> TEST 4 PASSED: Real database inventory depletion triggered automatic graceful fallback.")
     finally:
@@ -196,6 +198,7 @@ def test_real_db_stock_failure_and_recovery():
             db.commit()
             print(f"Cleaned up: Restored stock of '{top_prod.title}' back to {original_stock}.")
         db.close()
+
 
 
 
