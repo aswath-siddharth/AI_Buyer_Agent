@@ -61,26 +61,22 @@ fi
 # ------------------------------------------------------------------------------
 echo -e "\n${YELLOW}📥 Automatically pulling latest changes from Git...${NC}"
 if [ -d ".git" ]; then
-    # Fetch all remote branches
     git fetch --all --prune || true
     
-    # Detect branch (main or master or current)
-    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
-    
-    # If branch is detached or invalid, default to main
-    if [ "$CURRENT_BRANCH" = "HEAD" ] || [ -z "$CURRENT_BRANCH" ]; then
-        CURRENT_BRANCH="main"
-    fi
-    
-    echo -e "   Branch: ${CYAN}${CURRENT_BRANCH}${NC}"
-    
-    # Ensure tracking is set and pull
-    git branch --set-upstream-to="origin/$CURRENT_BRANCH" "$CURRENT_BRANCH" 2>/dev/null || true
-    if git pull origin "$CURRENT_BRANCH"; then
-        echo -e "${GREEN}✅ Successfully pulled latest changes from Git.${NC}"
+    # If remote has 'main', ensure we are on 'main' and tracking origin/main
+    if git show-ref --verify --quiet refs/remotes/origin/main; then
+        git checkout -B main origin/main 2>/dev/null || git checkout main 2>/dev/null || true
+        git branch -u origin/main main 2>/dev/null || true
+        TARGET_BRANCH="main"
     else
-        echo -e "${YELLOW}⚠️ Direct branch pull had warnings. Attempting fallback git pull...${NC}"
-        git pull || echo -e "${RED}⚠️ Continuing with existing files...${NC}"
+        TARGET_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
+    fi
+
+    echo -e "   Branch: ${CYAN}${TARGET_BRANCH}${NC}"
+    if git pull origin "$TARGET_BRANCH"; then
+        echo -e "${GREEN}✅ Successfully pulled latest changes from origin/${TARGET_BRANCH}.${NC}"
+    else
+        echo -e "${RED}⚠️ Could not pull from origin/${TARGET_BRANCH}. Continuing with existing files...${NC}"
     fi
 else
     echo -e "${YELLOW}⚠️ Not a git repository. Skipping git pull.${NC}"
