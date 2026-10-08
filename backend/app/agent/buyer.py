@@ -80,7 +80,11 @@ def discover_products(
 
         score = None
         breakdown = None
-        sentiment_summary = analyze_product_reviews(prod_reviews)
+        sentiment_summary = analyze_product_reviews(
+            prod_reviews,
+            product_title=product.title,
+            attributes=product.attributes,
+        )
 
         if matches:
             score, breakdown = calculate_score_breakdown(
