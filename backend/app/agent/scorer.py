@@ -3,6 +3,7 @@ from typing import Any
 import re
 
 from ..models import Product, ProductReview
+from ..review_data import get_amazon_review_analysis
 
 
 def parse_delivery_date(delivery_val: Any) -> date | None:
@@ -78,14 +79,21 @@ DEFECT_PATTERNS = [
 ]
 
 
-def analyze_product_reviews(reviews: list[Any] | None) -> dict:
+def analyze_product_reviews(
+    reviews: list[Any] | None,
+    product_title: str | None = None,
+    attributes: dict | None = None
+) -> dict:
     """
     Analyze sentiment and aspect metrics across a product's customer reviews:
     - Positive / Neutral / Negative ratio
     - Average sentiment score (-1.0 to +1.0)
     - Aspect complaints and defect penalties
     - Community trust score (0 to 30 points)
+    - Amazon-Style AI Review Synthesis ('Customers say' + Merits & Demerits)
     """
+    amazon_analysis = get_amazon_review_analysis(product_title, reviews, attributes)
+
     if not reviews:
         # Default neutral baseline if no reviews exist
         return {
@@ -98,10 +106,14 @@ def analyze_product_reviews(reviews: list[Any] | None) -> dict:
             "avg_rating": 4.5,
             "defect_penalties": 0.0,
             "defect_complaints": [],
-            "top_pros": ["Standard catalog quality"],
-            "top_cons": [],
+            "top_pros": amazon_analysis.get("merits", ["Standard catalog quality"])[:2],
+            "top_cons": amazon_analysis.get("demerits", [])[:2],
             "sentiment_label": "Unrated (Default Neutral)",
             "sentiment_points": 18.0,
+            "customers_say": amazon_analysis.get("customers_say", "Customers find this product satisfactory for standard everyday use."),
+            "merits": amazon_analysis.get("merits", ["Verified catalog merchant"]),
+            "demerits": amazon_analysis.get("demerits", ["Limited community reviews"]),
+            "aspect_pills": amazon_analysis.get("aspect_pills", []),
         }
 
     total = len(reviews)
@@ -183,10 +195,14 @@ def analyze_product_reviews(reviews: list[Any] | None) -> dict:
         "avg_rating": avg_rating,
         "defect_penalties": round(defect_penalty, 2),
         "defect_complaints": list(complaints_detected),
-        "top_pros": pros[:2],
-        "top_cons": cons[:2],
+        "top_pros": pros[:2] or amazon_analysis.get("merits", [])[:2],
+        "top_cons": cons[:2] or amazon_analysis.get("demerits", [])[:2],
         "sentiment_label": sentiment_label,
         "sentiment_points": round(sentiment_points, 2),
+        "customers_say": amazon_analysis.get("customers_say"),
+        "merits": amazon_analysis.get("merits", []),
+        "demerits": amazon_analysis.get("demerits", []),
+        "aspect_pills": amazon_analysis.get("aspect_pills", []),
     }
 
 
@@ -307,7 +323,11 @@ def calculate_score_breakdown(
 
     # 2. Review Sentiment & Trust: 30 points
     prod_reviews = reviews if reviews is not None else getattr(product, "reviews", [])
-    sentiment_meta = analyze_product_reviews(prod_reviews)
+    sentiment_meta = analyze_product_reviews(
+        prod_reviews,
+        product_title=getattr(product, "title", None),
+        attributes=getattr(product, "attributes", None),
+    )
     sentiment_pts = sentiment_meta["sentiment_points"]
 
     # 3. Price Savings: 25 points
@@ -355,6 +375,10 @@ def calculate_score_breakdown(
             "label": sentiment_meta["sentiment_label"],
             "top_pros": sentiment_meta["top_pros"],
             "top_cons": sentiment_meta["top_cons"],
+            "customers_say": sentiment_meta.get("customers_say"),
+            "merits": sentiment_meta.get("merits", []),
+            "demerits": sentiment_meta.get("demerits", []),
+            "aspect_pills": sentiment_meta.get("aspect_pills", []),
         },
         "price": {
             "points": price_pts,

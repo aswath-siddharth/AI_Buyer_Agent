@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session, selectinload
 from ..database import get_db
 from ..models import Product
 from ..schemas import ProductResponse
+from ..review_data import get_amazon_review_analysis
 
 
 router = APIRouter(
@@ -17,7 +18,22 @@ router = APIRouter(
 def get_products(
     db: Session = Depends(get_db)
 ):
-    return db.query(Product).options(selectinload(Product.reviews)).all()
+    products = db.query(Product).options(selectinload(Product.reviews)).all()
+    results = []
+    for p in products:
+        results.append({
+            "id": p.id,
+            "merchant_id": p.merchant_id,
+            "title": p.title,
+            "price": p.price,
+            "stock": p.stock,
+            "attributes": p.attributes,
+            "delivery_eta": p.delivery_eta,
+            "image_url": p.image_url,
+            "reviews": p.reviews,
+            "review_analysis": get_amazon_review_analysis(p.title, p.reviews, p.attributes),
+        })
+    return results
 
 
 @router.get("/{product_id}", response_model=ProductResponse)
@@ -38,7 +54,18 @@ def get_product(
             detail="Product not found"
         )
 
-    return product
+    return {
+        "id": product.id,
+        "merchant_id": product.merchant_id,
+        "title": product.title,
+        "price": product.price,
+        "stock": product.stock,
+        "attributes": product.attributes,
+        "delivery_eta": product.delivery_eta,
+        "image_url": product.image_url,
+        "reviews": product.reviews,
+        "review_analysis": get_amazon_review_analysis(product.title, product.reviews, product.attributes),
+    }
 
 
 

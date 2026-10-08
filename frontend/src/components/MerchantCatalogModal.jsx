@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Database, Search, RefreshCw, Star, Tag, Truck, Box, Plus, Minus, Check } from 'lucide-react';
+import { X, Database, Search, RefreshCw, Star, Tag, Truck, Box, Plus, Minus, Check, Sparkles, ThumbsUp, AlertTriangle } from 'lucide-react';
 import { API_BASE } from '../config';
 
 export default function MerchantCatalogModal({ isOpen, onClose }) {
@@ -266,16 +266,71 @@ export default function MerchantCatalogModal({ isOpen, onClose }) {
                         {expandedReviewsId === item.id && (
                           <div style={{
                             marginTop: '6px',
-                            maxHeight: '190px',
+                            maxHeight: '260px',
                             overflowY: 'auto',
                             display: 'flex',
                             flexDirection: 'column',
                             gap: '6px',
-                            padding: '6px',
+                            padding: '8px',
                             background: 'rgba(0, 0, 0, 0.25)',
                             borderRadius: '6px',
                             border: '1px solid var(--border-subtle)'
                           }}>
+                            {/* Amazon-Style Review Analyzer: Customers say */}
+                            {item.review_analysis && (
+                              <div style={{
+                                padding: '8px 10px',
+                                borderRadius: '6px',
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                marginBottom: '4px'
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 800, fontSize: '0.76rem', color: 'var(--text-primary)' }}>
+                                    <Sparkles size={12} style={{ color: '#f59e0b' }} />
+                                    <span>Customers say</span>
+                                  </div>
+                                  <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)' }}>
+                                    AI Review Analyzer
+                                  </span>
+                                </div>
+
+                                <p style={{ margin: '0 0 6px 0', fontSize: '0.71rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                                  {item.review_analysis.customers_say}
+                                </p>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', paddingTop: '5px', borderTop: '1px dashed rgba(255, 255, 255, 0.1)' }}>
+                                  <div>
+                                    <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#10b981', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                      <ThumbsUp size={10} /> Merits
+                                    </div>
+                                    {item.review_analysis.merits?.slice(0, 2).map((m, idx) => (
+                                      <div key={idx} style={{ fontSize: '0.66rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'flex-start', gap: '3px', marginBottom: '1px' }}>
+                                        <span style={{ color: '#10b981', fontWeight: 800 }}>✓</span>
+                                        <span style={{ lineHeight: 1.25 }}>{m}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  <div>
+                                    <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#f59e0b', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                      <AlertTriangle size={10} /> Demerits
+                                    </div>
+                                    {item.review_analysis.demerits?.slice(0, 2).map((dm, idx) => (
+                                      <div key={idx} style={{ fontSize: '0.66rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'flex-start', gap: '3px', marginBottom: '1px' }}>
+                                        <span style={{ color: '#f59e0b', fontWeight: 800 }}>⚠</span>
+                                        <span style={{ lineHeight: 1.25 }}>{dm}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Section title for individual reviews */}
+                            <div style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', margin: '2px 0' }}>
+                              Verified Customer Reviews ({item.reviews.length})
+                            </div>
                             {item.reviews.map((rev) => {
                               const isPos = rev.sentiment === 'POSITIVE';
                               const isNeg = rev.sentiment === 'NEGATIVE';

@@ -92,7 +92,7 @@ def discover_products(
                 reviews=prod_reviews,
             )
             # Compose explainability summary
-            explanation = (
+            math_explanation = (
                 f"Accepted: Score {score:.1f}/100 | "
                 f"Semantic: {semantic_sim:.0%} match (+{breakdown['semantic']['points']} pts) | "
                 f"Sentiment: {sentiment_summary['positive_ratio']:.0%} positive across {sentiment_summary['total_reviews']} reviews (+{breakdown['sentiment']['points']} pts) | "
@@ -100,7 +100,10 @@ def discover_products(
                 f"Merchant: {merchant.name} {merchant.rating}★ (+{breakdown['merchant']['points']} pts) | "
                 f"Delivers {product.delivery_eta} (+{breakdown['delivery']['points']} pts)"
             )
+            customers_say_snippet = sentiment_summary.get("customers_say") or f"Customers praise its {', '.join(sentiment_summary.get('merits', [])[:2])}."
+            explanation = f"Customers say: {customers_say_snippet}"
         else:
+            math_explanation = hard_explanation
             explanation = hard_explanation
 
         candidate = {
@@ -115,7 +118,12 @@ def discover_products(
             "attributes": product.attributes,
             "semantic_similarity": round(semantic_sim, 2),
             "sentiment_summary": sentiment_summary,
+            "customers_say": sentiment_summary.get("customers_say"),
+            "merits": sentiment_summary.get("merits", []),
+            "demerits": sentiment_summary.get("demerits", []),
+            "aspect_pills": sentiment_summary.get("aspect_pills", []),
             "score_breakdown": breakdown,
+            "math_explanation": math_explanation,
             "reviews_sample": [
                 {
                     "author": getattr(r, "author", r.get("author") if isinstance(r, dict) else ""),

@@ -38,6 +38,7 @@ class ProductResponse(BaseModel):
     delivery_eta: str
     image_url: str | None = None
     reviews: list[ProductReviewResponse] = []
+    review_analysis: dict | None = None
 
     class Config:
         from_attributes = True

@@ -1,3 +1,5 @@
+from typing import Any
+
 # Seed reviews data for all 29 products across Meridian catalog
 # Each product has 10-12 authentic, varied reviews with sentiments: POSITIVE, NEUTRAL, NEGATIVE.
 
@@ -1061,3 +1063,618 @@ PRODUCT_REVIEWS_CATALOG = {
          "aspects": {"structure": "non_sagging"}, "verified_purchase": True, "created_at": "2026-05-31"},
     ],
 }
+
+
+# =============================================================================
+# Amazon-Style AI Review Summaries ("Customers say" & Merits / Demerits)
+# Synthesized authentic customer feedback for all Meridian catalog products.
+# =============================================================================
+
+PRODUCT_AMAZON_SUMMARIES = {
+    "Nike Revolution 6": {
+        "customers_say": "Customers find the running shoes great for daily jogging, treadmill sessions, and casual wear, appreciating their lightweight feel, breathable mesh upper, and shock-absorbing foam midsole. The fit receives mixed feedback - while many find them true to size, some customers report that the toe box runs slightly narrow for wider feet. The insole also receives varied comments, with flat-footed runners noting the stock arch padding is rather thin.",
+        "merits": [
+            "Shock-absorbing foam midsole absorbing impact on road runs",
+            "Breathable mesh upper keeps feet well-ventilated and dry",
+            "Reliable outsole traction lasting 250+ kilometers",
+            "Lightweight construction with stable heel counter"
+        ],
+        "demerits": [
+            "Runs noticeably narrow across the toe box for wide feet",
+            "Default insole padding is rather thin for flat feet"
+        ],
+        "aspect_pills": [
+            {"aspect": "Cushioning", "status": "Positive", "pct": 92},
+            {"aspect": "Breathability", "status": "Positive", "pct": 88},
+            {"aspect": "Fit & Width", "status": "Mixed", "pct": 72},
+            {"aspect": "Durability", "status": "Positive", "pct": 85}
+        ]
+    },
+
+    "Nike Revolution 7": {
+        "customers_say": "Customers appreciate the upgraded plush foam cushioning and modern sleek colorways, finding the shoes very supportive for routine road runs. The padded collar and heel lock receive praise for preventing blisters. However, the initial stiffness receives mixed feedback - while the shoes break in nicely after a couple of runs, some note the midfoot fit feels snug upon first wear.",
+        "merits": [
+            "Plush, upgraded midsole cushioning with softer road landing",
+            "Padded collar and secure heel counter preventing blisters",
+            "Sleek contemporary aesthetic and durable rubber outsole"
+        ],
+        "demerits": [
+            "Slightly stiff sole out of the box requiring brief break-in",
+            "Snug midfoot profile may feel tight for high insteps"
+        ],
+        "aspect_pills": [
+            {"aspect": "Cushioning", "status": "Positive", "pct": 90},
+            {"aspect": "Comfort", "status": "Positive", "pct": 88},
+            {"aspect": "Flexibility", "status": "Mixed", "pct": 75}
+        ]
+    },
+
+    "Reebok Floatride": {
+        "customers_say": "Customers find the Floatride Energy foam exceptionally springy and responsive, making these shoes a favorite for both treadmill workouts and fast-paced tempo runs. The breathable upper and lightweight chassis are widely praised. Sizing and arch contouring receive mixed feedback - while standard foot shapes find them comfortable, some runners mention that the arch contour is modest and shoelaces can loosen unless double-knotted.",
+        "merits": [
+            "Springy Floatride Energy foam with high energy return",
+            "Lightweight and breathable upper for high-cadence running",
+            "Solid value for money in the performance category"
+        ],
+        "demerits": [
+            "Arch support is modest for individuals requiring high contouring",
+            "Stock shoelaces can untie easily without a double knot"
+        ],
+        "aspect_pills": [
+            {"aspect": "Energy Return", "status": "Positive", "pct": 94},
+            {"aspect": "Weight", "status": "Positive", "pct": 90},
+            {"aspect": "Arch Support", "status": "Mixed", "pct": 70}
+        ]
+    },
+
+    "Adidas Runfalcon 3": {
+        "customers_say": "Customers find the shoes very plush and comfortable for casual walking, commuting, and starter 5K runs, appreciating the Cloudfoam cushioning and classic Adidas styling. The weight receives mixed feedback - while sturdy and well-built, some users consider them slightly heavier than minimal road racers. Durability of the rubber outsole is widely appreciated.",
+        "merits": [
+            "Plush Cloudfoam midsole for all-day walking comfort",
+            "Clean classic 3-stripe design suitable for casual wear",
+            "Durable rubber outsole with high wear resistance"
+        ],
+        "demerits": [
+            "Slightly heavier in hand compared to ultra-light racers",
+            "Breathability is moderate during hot summer midday runs"
+        ],
+        "aspect_pills": [
+            {"aspect": "Walking Comfort", "status": "Positive", "pct": 89},
+            {"aspect": "Style", "status": "Positive", "pct": 92},
+            {"aspect": "Weight", "status": "Mixed", "pct": 74}
+        ]
+    },
+
+    "Puma Flyer Runner": {
+        "customers_say": "Customers appreciate the SoftFoam+ sockliner that provides step-in ease and cushioning for gym training and short runs. The clean aesthetic and color combinations are popular among buyers. Sizing receives mixed feedback - while lengthwise true to size, several customers note the forefoot feels slightly compact during long-distance runs beyond 8 kilometers.",
+        "merits": [
+            "SoftFoam+ insole delivers instant step-in cushioning",
+            "Versatile styling transitions easily from gym to casual wear",
+            "Affordable pricing with solid stitching quality"
+        ],
+        "demerits": [
+            "Forefoot can feel cramped during extended long runs",
+            "Outsole grip is best on dry pavement rather than damp trails"
+        ],
+        "aspect_pills": [
+            {"aspect": "Step-in Comfort", "status": "Positive", "pct": 88},
+            {"aspect": "Versatility", "status": "Positive", "pct": 85},
+            {"aspect": "Long-distance Cushioning", "status": "Mixed", "pct": 72}
+        ]
+    },
+
+    "ASICS Gel Contend": {
+        "customers_say": "Customers praise the rearfoot GEL cushioning technology and AmpliFoam midsole, highlighting superior shock absorption and orthopedic heel support for runners with joint sensitivity. The overall durability and stability receive high marks. The aesthetics receive mixed feedback - while functionally outstanding, some buyers find the design more utilitarian than trendy.",
+        "merits": [
+            "Rearfoot GEL cushioning absorbs impact and protects knees",
+            "Exceptional arch and heel stability for pronation control",
+            "High-durability engineered mesh upper and rubber sole"
+        ],
+        "demerits": [
+            "Aesthetic profile is somewhat utilitarian compared to street sneakers",
+            "Slightly firm ride before initial 10km break-in period"
+        ],
+        "aspect_pills": [
+            {"aspect": "Shock Absorption", "status": "Positive", "pct": 95},
+            {"aspect": "Heel Stability", "status": "Positive", "pct": 92},
+            {"aspect": "Aesthetics", "status": "Mixed", "pct": 78}
+        ]
+    },
+
+    "Reebok Energen Lite": {
+        "customers_say": "Customers love the feathery lightweight design and responsive fuel-efficient stride for quick morning 3K to 5K runs. The breathable mesh keeps feet ventilated. Sizing and cushioning receive mixed feedback - while fast and agile, runners seeking maximum plush stack height find the sole relatively low-profile with less squish.",
+        "merits": [
+            "Ultra-lightweight chassis for agile sprints and warmups",
+            "Well-ventilated upper mesh prevents sweat buildup",
+            "Great entry price point for budget-conscious runners"
+        ],
+        "demerits": [
+            "Lower stack height with less plush cushioning on hard asphalt",
+            "Lacks lateral stability for high-impact cross-training"
+        ],
+        "aspect_pills": [
+            {"aspect": "Weight", "status": "Positive", "pct": 94},
+            {"aspect": "Breathability", "status": "Positive", "pct": 90},
+            {"aspect": "Plushness", "status": "Mixed", "pct": 68}
+        ]
+    },
+
+    "Nike Downshifter 12": {
+        "customers_say": "Customers appreciate the midfoot fitband system that locks the foot securely, alongside the durable rubber wrap on the outsole. It is widely recommended for students and daily treadmill joggers. The collar padding receives mixed feedback - while snug, some buyers mention that wearing ankle socks is necessary to avoid rubbing during the first few days.",
+        "merits": [
+            "Midfoot fitband provides supportive lock-in support",
+            "Sustainable materials with durable rubber wrap outsole",
+            "Clean styling suitable for everyday campus use"
+        ],
+        "demerits": [
+            "Heel collar can cause minor friction without higher socks during break-in",
+            "Insole is glued down, making custom insert replacement trickier"
+        ],
+        "aspect_pills": [
+            {"aspect": "Midfoot Support", "status": "Positive", "pct": 90},
+            {"aspect": "Durability", "status": "Positive", "pct": 86},
+            {"aspect": "Heel Collar", "status": "Mixed", "pct": 73}
+        ]
+    },
+
+    "Adidas Galaxy 7": {
+        "customers_say": "Customers find the Cloudfoam midsole exceptionally soft for long shifts on their feet, casual walks, and light runs. The breathable lining and roomy fit receive positive marks. The flexibility receives mixed feedback - while very cushioned, the shoe has a slightly stiff forefoot flex that favors forward walking over lateral agility.",
+        "merits": [
+            "Soft Cloudfoam midsole cushions feet during standing shifts",
+            "Roomy fit accommodating medium-to-wide foot widths",
+            "Attractive color blocking and reflective heel accents"
+        ],
+        "demerits": [
+            "Stiffer forefoot flex than specialized racing flats",
+            "Shoe profile feels slightly bulky for fast track sprints"
+        ],
+        "aspect_pills": [
+            {"aspect": "Cushioning", "status": "Positive", "pct": 91},
+            {"aspect": "Roominess", "status": "Positive", "pct": 87},
+            {"aspect": "Flexibility", "status": "Mixed", "pct": 72}
+        ]
+    },
+
+    "Puma Softride Enzo": {
+        "customers_say": "Customers appreciate the bold slip-on bootie construction and EVA Softride cushioning that delivers great comfort for urban walking and gym workouts. The midfoot TPU cage provides good lateral support. The ease of entry receives mixed feedback - while convenient, some users note the bootie collar can feel tight to pull on with wide feet or high insteps.",
+        "merits": [
+            "Eye-catching modern streetwear design with prominent Puma branding",
+            "Softride EVA foam provides plush all-day underfoot support",
+            "TPU cage keeps the midfoot locked during gym training"
+        ],
+        "demerits": [
+            "Bootie collar requires two hands to pull on for wider feet",
+            "Not suited for wet grass or muddy trail running"
+        ],
+        "aspect_pills": [
+            {"aspect": "Design & Style", "status": "Positive", "pct": 93},
+            {"aspect": "Cushioning", "status": "Positive", "pct": 89},
+            {"aspect": "Ease of Entry", "status": "Mixed", "pct": 71}
+        ]
+    },
+
+    "Skechers Go Run": {
+        "customers_say": "Customers rave about the featherlight weight and responsive Ultra GO cushioning, noting that running feels effortless with zero foot fatigue. The Air Cooled Goga Mat insole is widely praised for heat dissipation. Durability of the exposed foam outsole receives mixed feedback - while comfortable, frequent road runners note faster wear on abrasive gravel.",
+        "merits": [
+            "Ultra GO lightweight cushioning reduces knee strain",
+            "Air Cooled Goga Mat insole keeps feet refreshingly cool",
+            "Immediate comfort with virtually zero break-in period"
+        ],
+        "demerits": [
+            "Exposed foam pods wear quicker on gravel and sharp asphalt",
+            "Upper mesh is thin and may not provide enough warmth in winter"
+        ],
+        "aspect_pills": [
+            {"aspect": "Comfort", "status": "Positive", "pct": 96},
+            {"aspect": "Breathability", "status": "Positive", "pct": 92},
+            {"aspect": "Sole Durability", "status": "Mixed", "pct": 70}
+        ]
+    },
+
+    "New Balance Fresh Foam": {
+        "customers_say": "Customers love the precision-engineered Fresh Foam midsole, describing the ride as supremely cushioned and luxurious for long-distance 10K road runs. The wide toe box and plush tongue receive outstanding reviews. The price point and weight receive mixed feedback - while top-tier in comfort, it sits at a slightly higher price and has a heavier profile than minimalist racers.",
+        "merits": [
+            "Engineered Fresh Foam provides cloud-like long-run shock absorption",
+            "Generous toe box allows natural toe splay without pinching",
+            "High-density Ndurance rubber outsole lasts over 500 kilometers"
+        ],
+        "demerits": [
+            "Slightly higher price point near the budget ceiling",
+            "Weight is on the heavier side for competitive sprints"
+        ],
+        "aspect_pills": [
+            {"aspect": "Plush Cushioning", "status": "Positive", "pct": 96},
+            {"aspect": "Toe Box Width", "status": "Positive", "pct": 94},
+            {"aspect": "Weight", "status": "Mixed", "pct": 76}
+        ]
+    },
+
+    "Adidas Duramo SL": {
+        "customers_say": "Customers find the shoes versatile and supportive for multi-sport gym training, treadmill jogging, and campus walks, praising the Lightmotion midsole and breathable engineered mesh. Sizing receives mixed feedback - while standard sizing fits most, some report the heel lock could be slightly deeper for high-speed sprints.",
+        "merits": [
+            "Responsive Lightmotion cushioning balances softness with stability",
+            "Breathable multi-layer mesh keeps foot odor low",
+            "Adiwear outsole delivers dependable traction indoors and outdoors"
+        ],
+        "demerits": [
+            "Heel cup feels somewhat shallow for aggressive sprint starts",
+            "Arch contour is neutral and may need an orthotic for high arches"
+        ],
+        "aspect_pills": [
+            {"aspect": "Versatility", "status": "Positive", "pct": 89},
+            {"aspect": "Traction", "status": "Positive", "pct": 88},
+            {"aspect": "Heel Lock", "status": "Mixed", "pct": 74}
+        ]
+    },
+
+    "Puma Velocity Nitro": {
+        "customers_say": "Customers praise the advanced NITRO foam technology, highlighting an explosive bounce and springy responsiveness that rivals premium race shoes. The Pumagrip rubber outsole is rated as one of the best on wet roads. Sizing receives mixed feedback - while length is accurate, the midfoot is snug and requires careful lace adjustments.",
+        "merits": [
+            "Nitrogen-infused NITRO foam delivers exceptional rebound and spring",
+            "Pumagrip rubber delivers class-leading traction in wet conditions",
+            "Reflective details improve visibility during night runs"
+        ],
+        "demerits": [
+            "Snug racing midfoot profile takes time to adjust",
+            "Tongue padding is minimal to save weight"
+        ],
+        "aspect_pills": [
+            {"aspect": "Rebound & Bounce", "status": "Positive", "pct": 97},
+            {"aspect": "Wet Grip", "status": "Positive", "pct": 98},
+            {"aspect": "Fit Profile", "status": "Mixed", "pct": 75}
+        ]
+    },
+
+    "ASICS Gel Excite": {
+        "customers_say": "Customers find the Gel Excite reliable and dependable for entry-to-intermediate runners, praising the rearfoot GEL and AmpliFoam setup for relieving heel impact. The padded ankle collar and soft tongue ensure great daily comfort. Sizing receives mixed feedback - while true to length, runners with wide feet suggest sizing up a half size.",
+        "merits": [
+            "Rearfoot GEL cushions heel strike on concrete sidewalks",
+            "Generously padded ankle collar and plush tongue",
+            "Durable construction with solid toe reinforcement"
+        ],
+        "demerits": [
+            "Width runs slightly compact across the ball of the foot",
+            "Not designed for fast sub-4 minute kilometer paces"
+        ],
+        "aspect_pills": [
+            {"aspect": "Heel Cushioning", "status": "Positive", "pct": 92},
+            {"aspect": "Comfort", "status": "Positive", "pct": 90},
+            {"aspect": "Forefoot Width", "status": "Mixed", "pct": 73}
+        ]
+    },
+
+    "Nike Air Zoom Pegasus 40": {
+        "customers_say": "Customers celebrate the Pegasus 40 as a reliable 'workhorse with wings', praising dual Zoom Air units and React foam that provide consistent, energized daily mileage. The durable waffle outsole and redesigned midfoot strap are highlighted. The price point and firmness receive mixed feedback - while exceptionally durable, the ride is firmer than ultra-max plush shoes.",
+        "merits": [
+            "Dual Zoom Air units deliver snappy, energized toe-offs",
+            "React foam midsole maintains consistent cushioning over 600+ km",
+            "Redesigned midfoot band prevents lateral foot slippage"
+        ],
+        "demerits": [
+            "Priced at the premium end of the catalog",
+            "Ride is on the responsive/firm side rather than plush squishy"
+        ],
+        "aspect_pills": [
+            {"aspect": "Durability", "status": "Positive", "pct": 98},
+            {"aspect": "Energy Return", "status": "Positive", "pct": 93},
+            {"aspect": "Value", "status": "Mixed", "pct": 78}
+        ]
+    },
+
+    "Under Armour HOVR Sonic 6": {
+        "customers_say": "Customers appreciate the zero-gravity feel of UA HOVR cushioning that absorbs impact and returns energy cleanly during road runs. The engineered spacer mesh upper provides great ventilation and structure. The flexibility receives mixed feedback - while supportive, some find the heel-to-toe transition slightly firm initially.",
+        "merits": [
+            "UA HOVR foam absorbs shock and preserves leg energy on long runs",
+            "Engineered spacer mesh upper is lightweight and structured",
+            "External TPU heel counter delivers excellent rearfoot lock"
+        ],
+        "demerits": [
+            "Slightly rigid ride during the first few workout sessions",
+            "Outsole rubber adds slight weight to the overall build"
+        ],
+        "aspect_pills": [
+            {"aspect": "Energy Return", "status": "Positive", "pct": 91},
+            {"aspect": "Heel Support", "status": "Positive", "pct": 94},
+            {"aspect": "Flexibility", "status": "Mixed", "pct": 72}
+        ]
+    },
+
+    "Sony WH-CH520 Wireless Bluetooth Headphones": {
+        "customers_say": "Customers find the headphones fantastic for remote work, college lectures, and travel, praising an incredible 50-hour battery life, lightweight swivel design, and crystal-clear voice microphones. The ear cup design receives mixed feedback - while lightweight, the on-ear cups can cause ear fatigue during continuous listening sessions exceeding 3 hours.",
+        "merits": [
+            "Massive 50-hour battery life with fast Type-C quick charging",
+            "Multi-point Bluetooth connectivity across phone and laptop",
+            "Exceptional voice clarity on phone calls and Zoom meetings"
+        ],
+        "demerits": [
+            "On-ear clamping pressure can cause ear discomfort after 3+ hours",
+            "Bass profile is balanced rather than rumbling sub-bass"
+        ],
+        "aspect_pills": [
+            {"aspect": "Battery Life", "status": "Positive", "pct": 99},
+            {"aspect": "Call Clarity", "status": "Positive", "pct": 92},
+            {"aspect": "On-Ear Comfort", "status": "Mixed", "pct": 71}
+        ]
+    },
+
+    "boAt Airdopes 141 ANC True Wireless": {
+        "customers_say": "Customers find the earbuds great value for commute and gym workouts, appreciating the 32dB active noise cancellation, deep punchy bass, and IPX5 sweat resistance. The microphone and touch controls receive mixed feedback - while music playback is fun and bass-heavy, some users report accidental touch triggers and average call quality in noisy outdoor traffic.",
+        "merits": [
+            "Impressive 32dB active noise cancellation at an affordable price",
+            "Deep signature bass tuning popular for workout music",
+            "IPX5 sweat and splash resistance for intense cardio"
+        ],
+        "demerits": [
+            "Touch sensors are sensitive and prone to accidental track skips",
+            "Microphone picks up ambient background noise in windy streets"
+        ],
+        "aspect_pills": [
+            {"aspect": "ANC Performance", "status": "Positive", "pct": 89},
+            {"aspect": "Bass & Audio", "status": "Positive", "pct": 91},
+            {"aspect": "Touch Controls", "status": "Mixed", "pct": 69}
+        ]
+    },
+
+    "JBL Tune 510BT Pure Bass On-Ear": {
+        "customers_say": "Customers praise the signature JBL Pure Bass sound that brings hip-hop and electronic music to life with deep punchy lows, alongside a dependable 40-hour battery. The headband padding receives mixed feedback - while foldable and compact, customers with larger head sizes report the headband padding is thin and clamps tightly.",
+        "merits": [
+            "Signature JBL Pure Bass sound with dynamic 32mm drivers",
+            "40 hours of battery life with 5-minute quick charge for 2 hours playback",
+            "Hands-free voice assistant integration with Siri and Google"
+        ],
+        "demerits": [
+            "Tight headband clamping force can feel firm on larger heads",
+            "Passive isolation is modest compared to active noise cancellation"
+        ],
+        "aspect_pills": [
+            {"aspect": "Bass Response", "status": "Positive", "pct": 95},
+            {"aspect": "Battery Life", "status": "Positive", "pct": 94},
+            {"aspect": "Clamping Force", "status": "Mixed", "pct": 68}
+        ]
+    },
+
+    "Noise ColorFit Pro 5 AMOLED Smartwatch": {
+        "customers_say": "Customers love the vibrant 1.85-inch AMOLED display with rich colors and crisp outdoor visibility, along with reliable Bluetooth calling and comprehensive 100+ sports tracking modes. The battery life receives mixed feedback - while it lasts up to 5 days normally, keeping Always-On Display (AOD) active drains the battery within 36 hours.",
+        "merits": [
+            "Stunning high-resolution AMOLED screen with high brightness",
+            "Clear Bluetooth calling with built-in microphone and speaker",
+            "Sleek metallic finish with comfortable silicone strap"
+        ],
+        "demerits": [
+            "Always-On Display mode reduces battery longevity to 1.5 days",
+            "Companion smartphone app requires occasional Bluetooth sync refresh"
+        ],
+        "aspect_pills": [
+            {"aspect": "Display Quality", "status": "Positive", "pct": 97},
+            {"aspect": "Bluetooth Calling", "status": "Positive", "pct": 90},
+            {"aspect": "AOD Battery", "status": "Mixed", "pct": 70}
+        ]
+    },
+
+    "Fire-Boltt Gladiator Bluetooth Calling Watch": {
+        "customers_say": "Customers appreciate the bold Apple-inspired luxury aesthetics, large 1.96-inch HD display, and seamless Bluetooth calling for quick wrist dials. The heart rate and sleep tracking sensors receive mixed feedback - while steps and time functions work reliably, health sensors show slight variance when compared against medical-grade devices.",
+        "merits": [
+            "Large 1.96-inch HD screen with smooth crown scrolling",
+            "Loud and clear on-wrist calling speaker",
+            "Robust metal casing offering a premium flagship watch feel"
+        ],
+        "demerits": [
+            "Fitness and SpO2 sensor accuracy is indicative rather than clinical",
+            "Display is TFT LCD rather than deep AMOLED contrast"
+        ],
+        "aspect_pills": [
+            {"aspect": "Appearance & Build", "status": "Positive", "pct": 93},
+            {"aspect": "Speaker & Mic", "status": "Positive", "pct": 88},
+            {"aspect": "Sensor Accuracy", "status": "Mixed", "pct": 66}
+        ]
+    },
+
+    "Amazfit Bip 5 Ultra Smartwatch": {
+        "customers_say": "Customers praise the ultra-accurate built-in 4-satellite GPS and Zepp OS ecosystem, noting that running routes and heart rate metrics match dedicated sport watches. The 10-day battery life is a standout feature. The display receives mixed feedback - while sharp and responsive, some users wish it featured an AMOLED panel instead of high-res LCD.",
+        "merits": [
+            "Dedicated multi-satellite GPS tracks runs without needing a phone",
+            "Outstanding 10-day battery life under typical daily usage",
+            "Comprehensive Zepp OS with downloadable mini apps"
+        ],
+        "demerits": [
+            "Screen is LCD rather than true black AMOLED",
+            "Bezel thickness is slightly noticeable around the screen edge"
+        ],
+        "aspect_pills": [
+            {"aspect": "GPS Tracking", "status": "Positive", "pct": 96},
+            {"aspect": "Battery Endurance", "status": "Positive", "pct": 98},
+            {"aspect": "Screen Contrast", "status": "Mixed", "pct": 74}
+        ]
+    },
+
+    "Puma Smash v2 Leather Sneakers": {
+        "customers_say": "Customers find the shoes clean, stylish, and timeless for casual outings and office Fridays, appreciating the genuine leather upper and SoftFoam+ comfort insert. The break-in period receives mixed feedback - while very durable, the leather is somewhat stiff during the first week before softening comfortably.",
+        "merits": [
+            "Durable leather upper that wipes clean easily",
+            "SoftFoam+ insole absorbs walking impact comfortably",
+            "Minimalist tennis silhouette that matches jeans and chinos"
+        ],
+        "demerits": [
+            "Leather upper requires a 3 to 5 day break-in period",
+            "Slightly heavy compared to mesh athletic runners"
+        ],
+        "aspect_pills": [
+            {"aspect": "Timeless Style", "status": "Positive", "pct": 94},
+            {"aspect": "Leather Durability", "status": "Positive", "pct": 91},
+            {"aspect": "Initial Stiffness", "status": "Mixed", "pct": 70}
+        ]
+    },
+
+    "Converse Chuck Taylor All Star Street": {
+        "customers_say": "Customers love the legendary skate silhouette upgraded with padded collar and tongue for enhanced ankle comfort compared to classic thin Chucks. The vulcanized rubber sole provides dependable board grip. Arch support receives mixed feedback - while universally loved for casual wear, flat soles lack high arch support for long walking tours.",
+        "merits": [
+            "Padded collar and tongue provide far more comfort than classic Chucks",
+            "Iconic street style with vulcanized rubber toe cap",
+            "Durable canvas and secure lace-up construction"
+        ],
+        "demerits": [
+            "Flat sole provides minimal arch support without custom insoles",
+            "Takes slightly longer to dry if caught in heavy monsoon rain"
+        ],
+        "aspect_pills": [
+            {"aspect": "Iconic Aesthetic", "status": "Positive", "pct": 97},
+            {"aspect": "Padded Collar", "status": "Positive", "pct": 92},
+            {"aspect": "Arch Support", "status": "Mixed", "pct": 65}
+        ]
+    },
+
+    "Adidas Grand Court Baseline Sneakers": {
+        "customers_say": "Customers appreciate the retro 70s tennis court aesthetic and Cloudfoam Comfort sockliner, finding them ideal for everyday college wear and travel. Sizing receives mixed feedback - while length fits as expected, some customers report the toe box feels slightly snug on wider feet during all-day walking.",
+        "merits": [
+            "Cloudfoam Comfort sockliner delivers pillowy step-in softness",
+            "Classic Adidas 3-stripe styling looks great with any casual outfit",
+            "Sturdy rubber cupsole provides good traction and stability"
+        ],
+        "demerits": [
+            "Toe box is slightly tapered and may feel snug on broad feet",
+            "Synthetic leather requires regular wiping to avoid creasing"
+        ],
+        "aspect_pills": [
+            {"aspect": "Comfort Sockliner", "status": "Positive", "pct": 91},
+            {"aspect": "Casual Styling", "status": "Positive", "pct": 95},
+            {"aspect": "Toe Room", "status": "Mixed", "pct": 72}
+        ]
+    },
+
+    "Arctic Fox Slope 30L Tech Backpack": {
+        "customers_say": "Customers find the backpack outstanding for university students and tech professionals, praising the padded 15.6-inch laptop sleeve, dedicated USB charging pass-through, and water-repellent fabric. The main zipper receives mixed feedback - while spacious and rugged, some users note the security flap over the zipper can occasionally snag if zipped hastily.",
+        "merits": [
+            "Padded anti-shock laptop compartment fits up to 15.6-inch devices",
+            "Water-repellent fabric and built-in rain cover protect tech gear",
+            "Ergonomic breathable back padding distributes heavy book weight"
+        ],
+        "demerits": [
+            "Protective fabric flap can snag on the main zipper if pulled quickly",
+            "Side water bottle pocket is snug for wide 1-liter insulated flasks"
+        ],
+        "aspect_pills": [
+            {"aspect": "Laptop Protection", "status": "Positive", "pct": 96},
+            {"aspect": "Water Resistance", "status": "Positive", "pct": 93},
+            {"aspect": "Zipper Flap", "status": "Mixed", "pct": 74}
+        ]
+    },
+
+    "Wildcraft Athleisure Gym & Duffle Bag": {
+        "customers_say": "Customers love the thoughtful layout featuring a separate ventilated shoe compartment, spacious 35-liter main compartment, and tough ripstop polyester that easily handles gym clothes and weekend getaways. The shoulder strap receives mixed feedback - while the handles are sturdy, customers carrying heavy gym weights wish the shoulder pad had thicker foam.",
+        "merits": [
+            "Dedicated isolated shoe compartment keeps dirty sneakers away from clothes",
+            "Spacious 35-liter storage capacity with internal zippered valuables pocket",
+            "Heavy-duty water-resistant ripstop polyester fabric"
+        ],
+        "demerits": [
+            "Detachable shoulder strap padding is relatively thin under heavy loads",
+            "Base lacks rubber protective feet for placing on wet locker room floors"
+        ],
+        "aspect_pills": [
+            {"aspect": "Shoe Compartment", "status": "Positive", "pct": 98},
+            {"aspect": "Storage Space", "status": "Positive", "pct": 95},
+            {"aspect": "Shoulder Padding", "status": "Mixed", "pct": 73}
+        ]
+    },
+
+    "Skybags Tech Commuter Laptop Backpack": {
+        "customers_say": "Customers praise the lightweight multi-compartment organization, stylish geometric accents, and padded shoulder straps for daily office and metro commuting. Fabric thickness receives mixed feedback - while great for light weight and daily transit, some commuters note that the base fabric could be thicker for rough outdoor travel.",
+        "merits": [
+            "Three spacious zippered compartments with dedicated organizer pockets",
+            "Lightweight construction prevents shoulder fatigue during long commutes",
+            "Padded air-mesh back panel provides good airflow on warm days"
+        ],
+        "demerits": [
+            "Base fabric is lighter weight and should not be dragged on abrasive concrete",
+            "Laptop strap velcro could be slightly longer for thick gaming laptops"
+        ],
+        "aspect_pills": [
+            {"aspect": "Organization Pockets", "status": "Positive", "pct": 94},
+            {"aspect": "Comfortable Straps", "status": "Positive", "pct": 91},
+            {"aspect": "Base Durability", "status": "Mixed", "pct": 75}
+        ]
+    }
+}
+
+
+def synthesize_customer_review_analysis(
+    product_title: str | None,
+    reviews: list[Any] | None,
+    attributes: dict | None = None
+) -> dict:
+    """
+    Dynamically compose an Amazon-style 'Customers say' synthesis narrative
+    with explicit merits and demerits from arbitrary customer reviews.
+    """
+    title = product_title or "this product"
+    if not reviews:
+        return {
+            "customers_say": f"Customers find {title} satisfactory for everyday standard use. Verified buyer feedback is currently gathering for this item.",
+            "merits": ["Verified merchant catalog quality", "Standard merchant fulfillment warranty"],
+            "demerits": ["Limited community review history currently on file"],
+            "aspect_pills": [{"aspect": "General Quality", "status": "Neutral", "pct": 75}]
+        }
+
+    pos_comments = []
+    neg_comments = []
+    aspect_counts = {}
+
+    for r in reviews:
+        sentiment = (getattr(r, "sentiment", None) or (r.get("sentiment") if isinstance(r, dict) else "POSITIVE")).upper()
+        comment = str(getattr(r, "comment", None) or (r.get("comment", "") if isinstance(r, dict) else "")).strip()
+        aspects = getattr(r, "aspects", None) or (r.get("aspects") if isinstance(r, dict) else {})
+        if isinstance(aspects, dict):
+            for k, v in aspects.items():
+                label = k.replace("_", " ").title()
+                aspect_counts[label] = aspect_counts.get(label, 0) + 1
+
+        if (sentiment == "POSITIVE" or (isinstance(r, dict) and r.get("rating", 4) >= 4.0)) and len(comment) > 15:
+            pos_comments.append(comment.split(".")[0].strip())
+        elif (sentiment == "NEGATIVE" or (isinstance(r, dict) and r.get("rating", 4) <= 3.0)) and len(comment) > 15:
+            neg_comments.append(comment.split(".")[0].strip())
+
+    merits = pos_comments[:3] if pos_comments else ["Reliable daily performance", "Appealing design and good build quality"]
+    demerits = neg_comments[:2] if neg_comments else ["Sizing and initial fit may require minor adjustment"]
+
+    lead_aspect = merits[0].lower() if merits else "overall quality"
+    second_aspect = merits[1].lower() if len(merits) > 1 else "clean design"
+    critique = demerits[0].lower() if demerits else "moderate fit variance"
+
+    narrative = (
+        f"Customers find {title} great for daily use, appreciating {lead_aspect} and {second_aspect}. "
+        f"Specific aspects receive mixed feedback - while most customers praise its comfort and value, "
+        f"some note that {critique}. Overall, customer feedback is largely positive for its intended category."
+    )
+
+    aspect_pills = [
+        {"aspect": name, "status": "Positive", "pct": 88}
+        for name in list(aspect_counts.keys())[:3]
+    ] or [{"aspect": "Build & Comfort", "status": "Positive", "pct": 85}]
+
+    return {
+        "customers_say": narrative,
+        "merits": merits,
+        "demerits": demerits,
+        "aspect_pills": aspect_pills
+    }
+
+
+def get_amazon_review_analysis(
+    product_title: str | None,
+    reviews: list[Any] | None = None,
+    attributes: dict | None = None
+) -> dict:
+    """
+    Get or synthesize Amazon 'Customers say' review analysis for any product.
+    Matches predefined high-fidelity catalog summaries or synthesizes dynamically.
+    """
+    if product_title and product_title in PRODUCT_AMAZON_SUMMARIES:
+        return PRODUCT_AMAZON_SUMMARIES[product_title]
+
+    # Partial match
+    if product_title:
+        for known_title, summary in PRODUCT_AMAZON_SUMMARIES.items():
+            if known_title.lower() in product_title.lower() or product_title.lower() in known_title.lower():
+                return summary
+
+    return synthesize_customer_review_analysis(product_title, reviews, attributes)
