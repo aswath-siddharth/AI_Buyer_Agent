@@ -274,16 +274,3 @@ Use these queries in the AI Buyer terminal or click them directly in **Prompt St
 3. **AWS Zero-Trust Secrets Isolation**: Master keys are fetched dynamically from AWS Secrets Manager rather than being committed to version control.
 4. **Cryptographic Webhook Verification**: All fulfillment relies on server-validated HMAC-SHA256 signatures, preventing man-in-the-middle replay attacks.
 5. **Immutable Audit Trail**: Every decision, score, and state transition is sealed with timestamps and raw payload inspection.
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
-
----
-
-<div align="center">
-Built with ❤️ for the <strong>Razorpay AI Buildathon</strong>
-</div>
-
